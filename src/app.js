@@ -1,0 +1,61 @@
+const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const errorHandler = require('./middlewares/errorHandler');
+const mediaRoutes = require('./routes/mediaRoutes');
+
+const app = express();
+
+// Security middleware
+app.use(helmet());
+
+// CORS configuration
+app.use(cors());
+
+// Logging middleware
+app.use(morgan('combined'));
+
+// Body parser middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    error: 'Too many requests',
+    message: 'Too many requests from this IP, please try again later'
+  }
+});
+app.use('/api/', limiter);
+
+// Routes
+app.use('/api/media', mediaRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Media API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'Not found',
+    message: `Route ${req.originalUrl} not found`
+  });
+});
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
+
+module.exports = app;
+
