@@ -1,7 +1,7 @@
-const path = require('path');
-const fs = require('fs').promises;
-const fileRegistry = require('../utils/fileRegistry');
-const { processImage, generateThumbnail, getImageMetadata } = require('../utils/fileProcessor');
+const Media = require('../models/Media');
+const { uploadImageWithThumbnail } = require('../utils/cloudinaryUpload');
+const sharp = require('sharp');
+const axios = require('axios');
 
 /**
  * Process image (resize, convert format, optimize)
@@ -11,8 +11,8 @@ const processImageById = async (req, res, next) => {
     const { id } = req.params;
     const { width, height, format, quality, fit, optimize } = req.body;
 
-    // Get file from registry
-    const file = fileRegistry.getById(id);
+    // Get file from MongoDB
+    const file = await Media.findById(id);
 
     if (!file) {
       return res.status(404).json({
@@ -31,18 +31,7 @@ const processImageById = async (req, res, next) => {
       });
     }
 
-    // Check if file exists
-    try {
-      await fs.access(file.path);
-    } catch (error) {
-      return res.status(404).json({
-        success: false,
-        error: 'File not found',
-        message: 'File does not exist on disk'
-      });
-    }
-
-    // Process image
+    // Process image options
     const options = {
       width: width ? parseInt(width) : undefined,
       height: height ? parseInt(height) : undefined,
@@ -52,45 +41,67 @@ const processImageById = async (req, res, next) => {
       optimize: optimize === true || optimize === 'true'
     };
 
-    const pipeline = await processImage(file.path, options);
-
-    // Generate output filename
-    const ext = format ? `.${format}` : path.extname(file.filename);
-    const basename = path.basename(file.filename, path.extname(file.filename));
-    const outputFilename = `${basename}-processed${ext}`;
-    const uploadDir = process.env.UPLOAD_DIR || './uploads';
-    const outputPath = path.join(uploadDir, 'images', outputFilename);
-
-    // Save processed image
-    await pipeline.toFile(outputPath);
-
-    // Get new metadata
-    const metadata = await getImageMetadata(outputPath);
-    const stats = await fs.stat(outputPath);
-
-    // Create new file record
-    const apiBaseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    // Fetch image from Cloudinary URL and process
+    const response = await axios.get(file.url, { responseType: 'arraybuffer' });
+    const buffer = Buffer.from(response.data);
     
+    // Process with Sharp
+    let pipeline = sharp(buffer);
+    
+    if (options.width || options.height) {
+      pipeline = pipeline.resize(options.width, options.height, {
+        fit: options.fit || 'inside',
+        withoutEnlargement: true
+      });
+    }
+
+    if (options.format) {
+      switch (options.format.toLowerCase()) {
+        case 'jpeg':
+        case 'jpg':
+          pipeline = pipeline.jpeg({ quality: options.quality || 80 });
+          break;
+        case 'png':
+          pipeline = pipeline.png({ quality: options.quality || 80 });
+          break;
+        case 'webp':
+          pipeline = pipeline.webp({ quality: options.quality || 80 });
+          break;
+      }
+    }
+
+    const processedBuffer = await pipeline.toBuffer();
+    const metadata = await sharp(processedBuffer).metadata();
+
+    // Generate unique filename for processed image
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 15);
+    const ext = format ? `.${format}` : '.jpg';
+    const processedFilename = `processed-${timestamp}-${random}${ext}`;
+
+    // Upload processed image to Cloudinary
+    const uploadResult = await uploadImageWithThumbnail(processedBuffer, processedFilename);
+
+    // Create new file record in MongoDB
     const processedFileData = {
-      filename: outputFilename,
+      filename: processedFilename,
       originalName: file.originalName,
       mimetype: format ? `image/${format}` : file.mimetype,
       category: 'image',
-      size: stats.size,
-      path: outputPath,
-      url: `${apiBaseUrl}/api/media/file/${outputFilename}`,
-      downloadUrl: `${apiBaseUrl}/api/media/file/${outputFilename}`,
-      thumbnailUrl: `${apiBaseUrl}/api/media/file/thumbnails/${outputFilename}`,
-      metadata: metadata,
-      processedFrom: id,
-      processingOptions: options
+      size: processedBuffer.length,
+      url: uploadResult.url,
+      cloudinaryId: uploadResult.cloudinaryId,
+      thumbnailUrl: uploadResult.thumbnailUrl,
+      thumbnailCloudinaryId: uploadResult.thumbnailCloudinaryId,
+      metadata: {
+        width: uploadResult.width,
+        height: uploadResult.height,
+        format: uploadResult.format
+      },
+      ownerId: req.user?.id || file.ownerId
     };
 
-    const record = fileRegistry.create(processedFileData);
-
-    // Generate thumbnail for processed image
-    const thumbnailPath = path.join(uploadDir, 'thumbnails', outputFilename);
-    await generateThumbnail(outputPath, thumbnailPath);
+    const record = await Media.create(processedFileData);
 
     res.json({
       success: true,
@@ -98,6 +109,13 @@ const processImageById = async (req, res, next) => {
       message: 'Image processed successfully'
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({
+        success: false,
+        error: 'File not found',
+        message: `File with ID ${id} not found`
+      });
+    }
     next(error);
   }
 };
@@ -105,4 +123,3 @@ const processImageById = async (req, res, next) => {
 module.exports = {
   processImage: processImageById
 };
-

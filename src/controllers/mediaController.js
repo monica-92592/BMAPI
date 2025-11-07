@@ -1,8 +1,13 @@
-const path = require('path');
-const fs = require('fs').promises;
-const fileRegistry = require('../utils/fileRegistry');
-const { validateFile, getFileTypeCategory } = require('../utils/fileValidation');
-const { generateThumbnail, getImageMetadata, getFileStats } = require('../utils/fileProcessor');
+const Media = require('../models/Media');
+const { generateUniqueFilename } = require('../utils/fileProcessor');
+const { 
+  uploadImageWithThumbnail, 
+  uploadVideo, 
+  uploadAudio,
+  deleteFromCloudinary 
+} = require('../utils/cloudinaryUpload');
+const { getFileTypeCategory } = require('../utils/fileValidation');
+const sharp = require('sharp');
 
 /**
  * Upload file
@@ -19,42 +24,51 @@ const uploadFile = async (req, res, next) => {
 
     const file = req.file;
     const category = req.fileCategory || getFileTypeCategory(file.mimetype);
-    const uploadDir = process.env.UPLOAD_DIR || './uploads';
-    const filePath = path.join(uploadDir, `${category}s`, file.filename);
-    const apiBaseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-
-    // Get file stats
-    const stats = await getFileStats(filePath);
+    const uniqueFilename = generateUniqueFilename(file.originalname);
     
-    // Additional metadata for images
+    let uploadResult;
     let imageMetadata = null;
+
+    // Upload to Cloudinary based on category
     if (category === 'image') {
-      imageMetadata = await getImageMetadata(filePath);
-      
-      // Generate thumbnail automatically
-      const thumbnailPath = path.join(uploadDir, 'thumbnails', file.filename);
-      await generateThumbnail(filePath, thumbnailPath);
+      uploadResult = await uploadImageWithThumbnail(file.buffer, uniqueFilename);
+      imageMetadata = {
+        width: uploadResult.width,
+        height: uploadResult.height,
+        format: uploadResult.format
+      };
+    } else if (category === 'video') {
+      uploadResult = await uploadVideo(file.buffer, uniqueFilename);
+    } else if (category === 'audio') {
+      uploadResult = await uploadAudio(file.buffer, uniqueFilename);
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid file category',
+        message: 'File must be image, video, or audio'
+      });
     }
 
-    // Create file record
-    const fileData = {
-      filename: file.filename,
+    // Create file record in MongoDB
+    const mediaData = {
+      filename: uniqueFilename,
       originalName: file.originalname,
       mimetype: file.mimetype,
       category: category,
       size: file.size,
-      path: filePath,
-      url: `${apiBaseUrl}/api/media/file/${file.filename}`,
-      downloadUrl: `${apiBaseUrl}/api/media/file/${file.filename}`,
-      thumbnailUrl: category === 'image' ? `${apiBaseUrl}/api/media/file/thumbnails/${file.filename}` : null,
-      metadata: imageMetadata || null
+      url: uploadResult.url,
+      cloudinaryId: uploadResult.cloudinaryId,
+      thumbnailUrl: uploadResult.thumbnailUrl || null,
+      thumbnailCloudinaryId: uploadResult.thumbnailCloudinaryId || null,
+      metadata: imageMetadata || null,
+      ownerId: req.user?.id || null // Will be set when auth is implemented
     };
 
-    const record = fileRegistry.create(fileData);
+    const media = await Media.create(mediaData);
 
     res.status(201).json({
       success: true,
-      data: record,
+      data: media,
       message: 'File uploaded successfully'
     });
   } catch (error) {
@@ -68,7 +82,7 @@ const uploadFile = async (req, res, next) => {
 const getFileById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const file = fileRegistry.getById(id);
+    const file = await Media.findById(id);
 
     if (!file) {
       return res.status(404).json({
@@ -83,6 +97,13 @@ const getFileById = async (req, res, next) => {
       data: file
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({
+        success: false,
+        error: 'File not found',
+        message: `File with ID ${id} not found`
+      });
+    }
     next(error);
   }
 };
@@ -97,17 +118,34 @@ const listFiles = async (req, res, next) => {
     const type = req.query.type || null;
     const category = req.query.category || null;
 
-    const result = fileRegistry.list({
-      limit,
-      offset,
-      type,
-      category
-    });
+    // Build query
+    const query = {};
+    if (type) {
+      query.mimetype = type;
+    }
+    if (category) {
+      query.category = category;
+    }
+
+    // Get total count
+    const total = await Media.countDocuments(query);
+
+    // Get files with pagination
+    const files = await Media.find(query)
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .lean();
 
     res.json({
       success: true,
-      data: result.files,
-      pagination: result.pagination
+      data: files,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total
+      }
     });
   } catch (error) {
     next(error);
@@ -120,7 +158,7 @@ const listFiles = async (req, res, next) => {
 const deleteFile = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const file = fileRegistry.getById(id);
+    const file = await Media.findById(id);
 
     if (!file) {
       return res.status(404).json({
@@ -130,31 +168,36 @@ const deleteFile = async (req, res, next) => {
       });
     }
 
-    // Delete file from storage
+    // Delete from Cloudinary
     try {
-      await fs.unlink(file.path);
+      if (file.cloudinaryId) {
+        const resourceType = file.category === 'image' ? 'image' : 'video';
+        await deleteFromCloudinary(file.cloudinaryId, resourceType);
+      }
       
-      // Delete thumbnail if exists
-      if (file.thumbnailUrl) {
-        const uploadDir = process.env.UPLOAD_DIR || './uploads';
-        const thumbnailPath = path.join(uploadDir, 'thumbnails', file.filename);
-        await fs.unlink(thumbnailPath).catch(() => {
-          // Ignore if thumbnail doesn't exist
-        });
+      if (file.thumbnailCloudinaryId) {
+        await deleteFromCloudinary(file.thumbnailCloudinaryId, 'image');
       }
     } catch (error) {
-      console.error('Error deleting file from storage:', error);
-      // Continue with registry deletion even if file deletion fails
+      console.error('Error deleting from Cloudinary:', error);
+      // Continue with database deletion even if Cloudinary deletion fails
     }
 
-    // Delete from registry
-    fileRegistry.delete(id);
+    // Delete from MongoDB
+    await Media.findByIdAndDelete(id);
 
     res.json({
       success: true,
       message: 'File deleted successfully'
     });
   } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(404).json({
+        success: false,
+        error: 'File not found',
+        message: `File with ID ${id} not found`
+      });
+    }
     next(error);
   }
 };
@@ -177,12 +220,31 @@ const searchFiles = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
 
-    const result = fileRegistry.search(q, { limit, offset });
+    // Text search in MongoDB
+    const query = {
+      $or: [
+        { originalName: { $regex: q, $options: 'i' } },
+        { filename: { $regex: q, $options: 'i' } }
+      ]
+    };
+
+    const total = await Media.countDocuments(query);
+
+    const files = await Media.find(query)
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .lean();
 
     res.json({
       success: true,
-      data: result.files,
-      pagination: result.pagination
+      data: files,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total
+      }
     });
   } catch (error) {
     next(error);
@@ -194,13 +256,43 @@ const searchFiles = async (req, res, next) => {
  */
 const getStats = async (req, res, next) => {
   try {
-    const stats = fileRegistry.getStats();
+    const totalFiles = await Media.countDocuments();
+    const totalSizeResult = await Media.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalSize: { $sum: '$size' }
+        }
+      }
+    ]);
+    const totalSize = totalSizeResult[0]?.totalSize || 0;
+
+    const byCategory = await Media.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const categoryStats = {
+      image: 0,
+      video: 0,
+      audio: 0
+    };
+
+    byCategory.forEach(item => {
+      categoryStats[item._id] = item.count;
+    });
     
     res.json({
       success: true,
       data: {
-        ...stats,
-        totalSizeMB: (stats.totalSize / (1024 * 1024)).toFixed(2)
+        totalFiles,
+        totalSize,
+        totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+        byCategory: categoryStats
       }
     });
   } catch (error) {
@@ -216,4 +308,3 @@ module.exports = {
   searchFiles,
   getStats
 };
-

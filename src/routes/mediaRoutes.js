@@ -12,7 +12,7 @@ const {
 const { processImage } = require('../controllers/imageController');
 const { serveFile } = require('../controllers/fileController');
 
-// Upload endpoints
+// Upload endpoints (protected - already authenticated via app.js)
 router.post('/upload', upload.single('file'), uploadFile);
 
 // Bulk upload endpoint
@@ -26,43 +26,61 @@ router.post('/upload/bulk', upload.array('files', 10), async (req, res, next) =>
       });
     }
 
-    const uploadDir = process.env.UPLOAD_DIR || './uploads';
-    const apiBaseUrl = process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-    const fileRegistry = require('../utils/fileRegistry');
+    const Media = require('../models/Media');
+    const { generateUniqueFilename } = require('../utils/fileProcessor');
     const { getFileTypeCategory } = require('../utils/fileValidation');
-    const { generateThumbnail, getImageMetadata, getFileStats } = require('../utils/fileProcessor');
-    const path = require('path');
+    const { 
+      uploadImageWithThumbnail, 
+      uploadVideo, 
+      uploadAudio 
+    } = require('../utils/cloudinaryUpload');
 
     const uploadedFiles = [];
 
     for (const file of req.files) {
       try {
         const category = getFileTypeCategory(file.mimetype);
-        const filePath = path.join(uploadDir, `${category}s`, file.filename);
-
-        const stats = await getFileStats(filePath);
+        const uniqueFilename = generateUniqueFilename(file.originalname);
         
+        let uploadResult;
         let imageMetadata = null;
+
+        // Upload to Cloudinary based on category
         if (category === 'image') {
-          imageMetadata = await getImageMetadata(filePath);
-          const thumbnailPath = path.join(uploadDir, 'thumbnails', file.filename);
-          await generateThumbnail(filePath, thumbnailPath);
+          uploadResult = await uploadImageWithThumbnail(file.buffer, uniqueFilename);
+          imageMetadata = {
+            width: uploadResult.width,
+            height: uploadResult.height,
+            format: uploadResult.format
+          };
+        } else if (category === 'video') {
+          uploadResult = await uploadVideo(file.buffer, uniqueFilename);
+        } else if (category === 'audio') {
+          uploadResult = await uploadAudio(file.buffer, uniqueFilename);
+        } else {
+          uploadedFiles.push({
+            error: 'Invalid file category',
+            filename: file.originalname
+          });
+          continue;
         }
 
-        const fileData = {
-          filename: file.filename,
+        // Create file record in MongoDB
+        const mediaData = {
+          filename: uniqueFilename,
           originalName: file.originalname,
           mimetype: file.mimetype,
           category: category,
           size: file.size,
-          path: filePath,
-          url: `${apiBaseUrl}/api/media/file/${file.filename}`,
-          downloadUrl: `${apiBaseUrl}/api/media/file/${file.filename}`,
-          thumbnailUrl: category === 'image' ? `${apiBaseUrl}/api/media/file/thumbnails/${file.filename}` : null,
-          metadata: imageMetadata || null
+          url: uploadResult.url,
+          cloudinaryId: uploadResult.cloudinaryId,
+          thumbnailUrl: uploadResult.thumbnailUrl || null,
+          thumbnailCloudinaryId: uploadResult.thumbnailCloudinaryId || null,
+          metadata: imageMetadata || null,
+          ownerId: req.user?.id || null
         };
 
-        const record = fileRegistry.create(fileData);
+        const record = await Media.create(mediaData);
         uploadedFiles.push(record);
       } catch (error) {
         console.error(`Error processing file ${file.originalname}:`, error);

@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorHandler');
 const mediaRoutes = require('./routes/mediaRoutes');
+const authRoutes = require('./routes/authRoutes');
+const { authenticate } = require('./middlewares/auth');
 
 const app = express();
 
@@ -33,8 +35,11 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Routes
-app.use('/api/media', mediaRoutes);
+// Public routes
+app.use('/api/auth', authRoutes);
+
+// Protected routes - require authentication
+app.use('/api/media', authenticate, mediaRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
