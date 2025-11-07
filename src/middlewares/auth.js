@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const Business = require('../models/Business');
 
 /**
  * Authentication middleware - verifies JWT token
@@ -22,19 +22,20 @@ const authenticate = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
 
-    // Get user from database
-    const user = await User.findById(decoded.userId).select('-password');
+    // Get business from database
+    const business = await Business.findById(decoded.userId).select('-password');
     
-    if (!user) {
+    if (!business) {
       return res.status(401).json({
         success: false,
         error: 'Unauthorized',
-        message: 'User not found'
+        message: 'Business not found'
       });
     }
 
-    // Attach user to request
-    req.user = user;
+    // Attach business to request (also attach as user for backward compatibility)
+    req.business = business;
+    req.user = business; // For backward compatibility
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -66,9 +67,10 @@ const optionalAuth = async (req, res, next) => {
       const token = authHeader.substring(7);
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-change-in-production');
-        const user = await User.findById(decoded.userId).select('-password');
-        if (user) {
-          req.user = user;
+        const business = await Business.findById(decoded.userId).select('-password');
+        if (business) {
+          req.business = business;
+          req.user = business; // For backward compatibility
         }
       } catch (error) {
         // Ignore token errors for optional auth

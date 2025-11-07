@@ -77,7 +77,7 @@ router.post('/upload/bulk', upload.array('files', 10), async (req, res, next) =>
           thumbnailUrl: uploadResult.thumbnailUrl || null,
           thumbnailCloudinaryId: uploadResult.thumbnailCloudinaryId || null,
           metadata: imageMetadata || null,
-          ownerId: req.user?.id || null
+          ownerId: req.business?._id || req.user?._id || null
         };
 
         const record = await Media.create(mediaData);

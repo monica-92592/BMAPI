@@ -61,7 +61,7 @@ const uploadFile = async (req, res, next) => {
       thumbnailUrl: uploadResult.thumbnailUrl || null,
       thumbnailCloudinaryId: uploadResult.thumbnailCloudinaryId || null,
       metadata: imageMetadata || null,
-      ownerId: req.user?.id || null // Will be set when auth is implemented
+      ownerId: req.business?._id || req.user?._id || null
     };
 
     const media = await Media.create(mediaData);

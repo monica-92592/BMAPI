@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const Business = require('../models/Business');
 const jwt = require('jsonwebtoken');
 
 /**
@@ -13,11 +13,11 @@ const generateToken = (userId) => {
 };
 
 /**
- * Register new user
+ * Register new business
  */
 const register = async (req, res, next) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, companyName, companyType, industry } = req.body;
 
     // Validation
     if (!email || !password || !name) {
@@ -28,33 +28,63 @@ const register = async (req, res, next) => {
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    // Check if business already exists
+    const existingBusiness = await Business.findOne({ email });
+    if (existingBusiness) {
       return res.status(400).json({
         success: false,
-        error: 'User exists',
-        message: 'User with this email already exists'
+        error: 'Business exists',
+        message: 'Business with this email already exists'
       });
     }
 
-    // Create user
-    const user = await User.create({
+    // Create business with default values
+    const businessData = {
       email,
       password,
-      name
-    });
+      name,
+      companyName: companyName || name, // Use name as companyName if not provided
+      companyType: companyType || 'other',
+      industry: industry || 'general',
+      membershipTier: 'free',
+      subscriptionStatus: 'active',
+      // Initialize resource limits
+      uploadCount: 0,
+      downloadCount: 0,
+      activeLicenseCount: 0,
+      // Initialize financial fields
+      revenueBalance: 0,
+      totalEarnings: 0,
+      totalSpent: 0,
+      // Initialize arrays
+      transactionHistory: [],
+      proposalsCreated: [],
+      votesCast: [],
+      mediaPortfolio: [],
+      licensesAsLicensor: [],
+      licensesAsLicensee: [],
+      collectionsOwned: [],
+      collectionsMemberOf: []
+    };
+
+    const business = await Business.create(businessData);
+
+    // Set limit reset timestamps
+    business.lastUploadReset = business.createdAt;
+    business.lastDownloadReset = business.createdAt;
+    await business.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(business._id);
 
     res.status(201).json({
       success: true,
       data: {
-        user: user.toJSON(),
+        business: business.toJSON(),
+        user: business.toJSON(), // For backward compatibility
         token
       },
-      message: 'User registered successfully'
+      message: 'Business registered successfully'
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
@@ -69,7 +99,7 @@ const register = async (req, res, next) => {
 };
 
 /**
- * Login user
+ * Login business
  */
 const login = async (req, res, next) => {
   try {
@@ -84,9 +114,9 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Find user
-    const user = await User.findOne({ email });
-    if (!user) {
+    // Find business
+    const business = await Business.findOne({ email });
+    if (!business) {
       return res.status(401).json({
         success: false,
         error: 'Invalid credentials',
@@ -95,7 +125,7 @@ const login = async (req, res, next) => {
     }
 
     // Check password
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await business.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -105,12 +135,13 @@ const login = async (req, res, next) => {
     }
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(business._id);
 
     res.json({
       success: true,
       data: {
-        user: user.toJSON(),
+        business: business.toJSON(),
+        user: business.toJSON(), // For backward compatibility
         token
       },
       message: 'Login successful'
@@ -121,14 +152,17 @@ const login = async (req, res, next) => {
 };
 
 /**
- * Get current user
+ * Get current business
  */
 const getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).select('-password');
+    const business = await Business.findById(req.business._id || req.user._id).select('-password');
     res.json({
       success: true,
-      data: user
+      data: {
+        business: business,
+        user: business // For backward compatibility
+      }
     });
   } catch (error) {
     next(error);

@@ -98,7 +98,7 @@ const processImageById = async (req, res, next) => {
         height: uploadResult.height,
         format: uploadResult.format
       },
-      ownerId: req.user?.id || file.ownerId
+      ownerId: req.business?._id || req.user?._id || file.ownerId
     };
 
     const record = await Media.create(processedFileData);

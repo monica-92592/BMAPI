@@ -50,7 +50,7 @@ const mediaSchema = new mongoose.Schema({
   // Ownership (for future B2B features)
   ownerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Business',
     required: false,
     index: true
   },
@@ -67,6 +67,33 @@ const mediaSchema = new mongoose.Schema({
 mediaSchema.index({ createdAt: -1 });
 mediaSchema.index({ category: 1, createdAt: -1 });
 mediaSchema.index({ originalName: 'text', filename: 'text' }); // Text search
+
+// Hook to increment Business uploadCount on media creation
+mediaSchema.pre('save', async function(next) {
+  if (this.isNew && this.ownerId) {
+    try {
+      const Business = require('./Business');
+      const business = await Business.findById(this.ownerId);
+      
+      if (business) {
+        // Check upload limit for free tier
+        if (business.membershipTier === 'free') {
+          const uploadLimit = 25; // or 50, configurable - could get from tier config
+          if (business.uploadCount >= uploadLimit) {
+            return next(new Error('Upload limit reached. Upgrade to Contributor for unlimited uploads.'));
+          }
+        }
+        
+        // Increment upload count
+        business.uploadCount += 1;
+        await business.save();
+      }
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
+});
 
 const Media = mongoose.model('Media', mediaSchema);
 

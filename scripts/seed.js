@@ -1,40 +1,70 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const { connectToDatabase, closeDatabaseConnection } = require('../src/config/database');
-const User = require('../src/models/User');
+const Business = require('../src/models/Business');
 const Media = require('../src/models/Media');
 
 // Sample data
-const sampleUsers = [
+const sampleBusinesses = [
   {
     email: 'john@example.com',
     password: 'password123',
     name: 'John Doe',
-    role: 'user'
+    role: 'user',
+    companyName: 'John Doe Photography',
+    companyType: 'photography',
+    industry: 'Creative Services',
+    specialty: 'Portrait Photography',
+    businessDescription: 'Professional portrait photography services',
+    membershipTier: 'free'
   },
   {
     email: 'jane@example.com',
     password: 'password123',
     name: 'Jane Smith',
-    role: 'user'
+    role: 'user',
+    companyName: 'Jane Smith Design Studio',
+    companyType: 'design',
+    industry: 'Creative Services',
+    specialty: 'Graphic Design',
+    businessDescription: 'Creative graphic design and branding services',
+    membershipTier: 'contributor'
   },
   {
     email: 'admin@example.com',
     password: 'admin123',
     name: 'Admin User',
-    role: 'admin'
+    role: 'admin',
+    companyName: 'Platform Admin',
+    companyType: 'other',
+    industry: 'Technology',
+    specialty: 'Platform Management',
+    businessDescription: 'Platform administration',
+    membershipTier: 'partner'
   },
   {
     email: 'bob@example.com',
     password: 'password123',
     name: 'Bob Johnson',
-    role: 'user'
+    role: 'user',
+    companyName: 'Bob Johnson Video Productions',
+    companyType: 'videography',
+    industry: 'Media Production',
+    specialty: 'Video Production',
+    businessDescription: 'Professional video production services',
+    membershipTier: 'free'
   },
   {
     email: 'alice@example.com',
     password: 'password123',
     name: 'Alice Williams',
-    role: 'user'
+    role: 'user',
+    companyName: 'Alice Williams Agency',
+    companyType: 'agency',
+    industry: 'Marketing',
+    specialty: 'Digital Marketing',
+    businessDescription: 'Full-service digital marketing agency',
+    membershipTier: 'free'
   }
 ];
 
@@ -117,37 +147,64 @@ async function seedDatabase() {
     
     // Clear existing data (optional - comment out if you want to keep existing data)
     console.log('🧹 Clearing existing data...');
-    await User.deleteMany({});
+    await Business.deleteMany({});
     await Media.deleteMany({});
     console.log('✅ Existing data cleared\n');
     
-    // Create users
-    console.log('👥 Creating users...');
-    const createdUsers = [];
-    for (const userData of sampleUsers) {
+    // Create businesses
+    console.log('🏢 Creating businesses...');
+    const createdBusinesses = [];
+    for (const businessData of sampleBusinesses) {
       try {
-        const user = await User.create(userData);
-        createdUsers.push(user);
-        console.log(`   ✅ Created user: ${user.email} (${user.name})`);
+        // Initialize resource limits
+        const business = await Business.create({
+          ...businessData,
+          subscriptionStatus: 'active',
+          // Initialize resource limits
+          uploadCount: 0,
+          downloadCount: 0,
+          activeLicenseCount: 0,
+          // Initialize financial fields
+          revenueBalance: 0,
+          totalEarnings: 0,
+          totalSpent: 0,
+          // Initialize arrays
+          transactionHistory: [],
+          proposalsCreated: [],
+          votesCast: [],
+          mediaPortfolio: [],
+          licensesAsLicensor: [],
+          licensesAsLicensee: [],
+          collectionsOwned: [],
+          collectionsMemberOf: []
+        });
+        
+        // Set limit reset timestamps
+        business.lastUploadReset = business.createdAt;
+        business.lastDownloadReset = business.createdAt;
+        await business.save();
+        
+        createdBusinesses.push(business);
+        console.log(`   ✅ Created business: ${business.email} (${business.companyName}) - Tier: ${business.membershipTier}`);
       } catch (error) {
         if (error.code === 11000) {
-          console.log(`   ⚠️  User ${userData.email} already exists, skipping...`);
+          console.log(`   ⚠️  Business ${businessData.email} already exists, skipping...`);
         } else {
           throw error;
         }
       }
     }
-    console.log(`✅ Created ${createdUsers.length} users\n`);
+    console.log(`✅ Created ${createdBusinesses.length} businesses\n`);
     
     // Create media files
     console.log('📁 Creating media files...');
     const createdMedia = [];
     for (const mediaData of sampleMedia) {
       try {
-        // Assign random owner from created users
-        if (createdUsers.length > 0) {
-          const randomUser = createdUsers[Math.floor(Math.random() * createdUsers.length)];
-          mediaData.ownerId = randomUser._id;
+        // Assign random owner from created businesses
+        if (createdBusinesses.length > 0) {
+          const randomBusiness = createdBusinesses[Math.floor(Math.random() * createdBusinesses.length)];
+          mediaData.ownerId = randomBusiness._id;
         }
         
         const media = await Media.create(mediaData);
@@ -161,7 +218,7 @@ async function seedDatabase() {
     
     // Summary
     console.log('📊 Seeding Summary:');
-    console.log(`   Users: ${createdUsers.length}`);
+    console.log(`   Businesses: ${createdBusinesses.length}`);
     console.log(`   Media: ${createdMedia.length}`);
     console.log('\n✅ Database seeding completed successfully!');
     
