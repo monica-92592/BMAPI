@@ -19,12 +19,20 @@ const {
   listLicensableMedia,
   getMediaLicensingInfo
 } = require('../controllers/mediaController');
+const { downloadLicensedMedia, getMediaLicenses } = require('../controllers/licenseController');
+const { checkDownloadLimit } = require('../middlewares/auth');
 const { processImage } = require('../controllers/imageController');
 const { serveFile } = require('../controllers/fileController');
 
 // Upload endpoints (protected - already authenticated via app.js)
 // Apply upload limit check (Refined Model)
+// POST /api/media/upload - Upload media file
 router.post('/upload', checkUploadLimit, upload.single('file'), uploadFile);
+
+// POST /api/media - Upload media (Refined Model)
+// Middleware: authenticate (app.js), checkUploadLimit
+// Show upgrade prompt if limit reached
+router.post('/', checkUploadLimit, upload.single('file'), uploadFile);
 
 // Bulk upload endpoint
 router.post('/upload/bulk', upload.array('files', 10), async (req, res, next) => {
@@ -126,7 +134,9 @@ router.get('/search', searchFiles);
 router.get('/stats', getStats);
 
 // List licensable media (must come before /:id route)
-router.get('/licensable', listLicensableMedia);
+// Note: This route is handled as public route in app.js
+// Query params: category, licenseType, priceRange
+// router.get('/licensable', listLicensableMedia); // Moved to public routes in app.js
 
 // List all files (must come before /:id route)
 router.get('/', listFiles);
@@ -139,7 +149,18 @@ router.put('/:id/usage-restrictions', setMediaUsageRestrictions);
 router.put('/:id/make-licensable', makeMediaLicensable);
 router.put('/:id/pool', addMediaToPool);
 router.delete('/:id/pool', removeMediaFromPool);
-router.get('/:id/licensing-info', getMediaLicensingInfo);
+// Get licenses for media (must come before /:id route)
+// Middleware: authenticate (app.js)
+router.get('/:id/licenses', getMediaLicenses);
+
+// Get licensing details (must come before /:id route)
+// Note: This route is handled as public route in app.js
+// router.get('/:id/licensing-info', getMediaLicensingInfo); // Moved to public routes in app.js
+
+// Download licensed media (must come before /:id route to avoid conflicts)
+// Middleware: authenticate (app.js), checkDownloadLimit
+// Increment download count on success
+router.get('/:id/download', checkDownloadLimit, downloadLicensedMedia);
 
 // Get file by ID (must come last to avoid conflicts)
 router.get('/:id', getFileById);

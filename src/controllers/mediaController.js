@@ -24,17 +24,18 @@ const uploadFile = async (req, res, next) => {
       });
     }
 
-    // Check upload limit before upload (Refined Model)
+    // Validate upload limit (Refined Model)
     const business = req.business || req.user;
     if (business) {
-      const limitCheck = await checkUploadLimit(business);
-      if (!limitCheck.canUpload) {
+      const canUpload = await business.canUpload();
+      if (!canUpload) {
+        const uploadLimit = business.membershipTier === 'free' ? 25 : null;
         return res.status(403).json({
           success: false,
           error: 'Upload limit reached',
-          message: limitCheck.message,
-          currentUploads: limitCheck.currentUploads,
-          uploadLimit: limitCheck.uploadLimit,
+          message: 'Upload limit reached. Upgrade to Contributor for unlimited uploads.',
+          currentUploads: business.uploadCount || 0,
+          uploadLimit: uploadLimit,
           upgradeUrl: '/api/subscriptions/upgrade',
           upgradeMessage: 'Upgrade to Contributor for unlimited uploads'
         });
@@ -42,7 +43,32 @@ const uploadFile = async (req, res, next) => {
     }
 
     const file = req.file;
+
+    // Validate file type
     const category = req.fileCategory || getFileTypeCategory(file.mimetype);
+    if (!category) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid file type',
+        message: `File type ${file.mimetype} is not supported. Allowed types: images, videos, audio`,
+        allowedTypes: ['image', 'video', 'audio']
+      });
+    }
+
+    // Validate file size
+    const { FILE_SIZE_LIMITS } = require('../utils/fileValidation');
+    const maxSize = FILE_SIZE_LIMITS[category];
+    if (file.size > maxSize) {
+      const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(2);
+      return res.status(400).json({
+        success: false,
+        error: 'File size exceeds limit',
+        message: `File size exceeds maximum allowed size of ${maxSizeMB}MB for ${category} files`,
+        fileSize: file.size,
+        maxSize: maxSize,
+        category: category
+      });
+    }
     const uniqueFilename = generateUniqueFilename(file.originalname);
     
     let uploadResult;

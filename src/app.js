@@ -12,8 +12,10 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
 const proposalRoutes = require('./routes/proposalRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const { listLicensableMedia, getMediaLicensingInfo } = require('./controllers/mediaController');
 const {
   authenticate,
+  optionalAuth,
   requirePartnerTier,
   checkUploadLimit,
   checkDownloadLimit,
@@ -50,13 +52,21 @@ app.use('/api/', limiter);
 // Public routes
 app.use('/api/auth', authRoutes);
 
+// Public media routes (no auth required)
+// GET /api/media/licensable - Browse licensable media
+app.get('/api/media/licensable', listLicensableMedia);
+
+// GET /api/media/:id/licensing-info - View licensing info
+app.get('/api/media/:id/licensing-info', getMediaLicensingInfo);
+
 // Protected routes - require authentication
 // Note: checkUploadLimit is applied at route level in mediaRoutes.js for upload endpoints
 app.use('/api/media', authenticate, mediaRoutes);
 app.use('/api/business', authenticate, businessRoutes);
 app.use('/api/licenses', authenticate, licenseRoutes);
 app.use('/api/subscriptions', authenticate, subscriptionRoutes);
-app.use('/api/collections', authenticate, requirePartnerTier, collectionRoutes);
+// Collections routes - optional auth for viewing, Partner tier required for management (applied at route level)
+app.use('/api/collections', optionalAuth, collectionRoutes);
 app.use('/api/proposals', authenticate, proposalRoutes);
 app.use('/api/transactions', authenticate, transactionRoutes);
 

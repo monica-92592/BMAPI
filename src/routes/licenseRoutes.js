@@ -12,7 +12,15 @@ const {
 const {
   createLicenseRequest,
   getPendingLicenses,
-  getLicenseRequests
+  getLicenseRequests,
+  listLicenses,
+  getLicenseById,
+  approveLicense,
+  rejectLicense,
+  cancelLicense,
+  getActiveLicenses,
+  getExpiredLicenses,
+  renewLicense
 } = require('../controllers/licenseController');
 
 // All routes require authentication (applied in app.js)
@@ -54,14 +62,14 @@ router.get('/requests', getLicenseRequests);
  * Middleware: authenticate (app.js)
  * Query params: status, type, asLicensor, asLicensee
  */
-// router.get('/', listLicenses);
+router.get('/', listLicenses);
 
 /**
  * GET /api/licenses/:id
  * Get license details
  * Middleware: authenticate (app.js)
  */
-// router.get('/:id', getLicenseById);
+router.get('/:id', getLicenseById);
 
 /**
  * PUT /api/licenses/:id/approve
@@ -69,7 +77,7 @@ router.get('/requests', getLicenseRequests);
  * Middleware: authenticate (app.js), requireVerifiedBusiness, checkActiveLicenseLimit
  * Increment active license count on success
  */
-// router.put('/:id/approve', requireVerifiedBusiness, checkActiveLicenseLimit, approveLicense);
+router.put('/:id/approve', requireVerifiedBusiness, checkActiveLicenseLimit, approveLicense);
 
 /**
  * PUT /api/licenses/:id/reject
@@ -77,7 +85,7 @@ router.get('/requests', getLicenseRequests);
  * Middleware: authenticate (app.js), requireVerifiedBusiness
  * Body: { reason }
  */
-// router.put('/:id/reject', requireVerifiedBusiness, rejectLicense);
+router.put('/:id/reject', requireVerifiedBusiness, rejectLicense);
 
 /**
  * PUT /api/licenses/:id/cancel
@@ -85,7 +93,7 @@ router.get('/requests', getLicenseRequests);
  * Middleware: authenticate (app.js)
  * Decrement active license count on success
  */
-// router.put('/:id/cancel', cancelLicense);
+router.put('/:id/cancel', cancelLicense);
 
 // ============================================
 // License Status Routes
@@ -96,7 +104,7 @@ router.get('/requests', getLicenseRequests);
  * Get active licenses
  * Middleware: authenticate (app.js)
  */
-// router.get('/active', getActiveLicenses);
+router.get('/active', getActiveLicenses);
 
 /**
  * GET /api/licenses/expired
@@ -104,7 +112,7 @@ router.get('/requests', getLicenseRequests);
  * Middleware: authenticate (app.js)
  * Decrement active license count on expiry
  */
-// router.get('/expired', getExpiredLicenses);
+router.get('/expired', getExpiredLicenses);
 
 /**
  * PUT /api/licenses/:id/renew
@@ -112,7 +120,7 @@ router.get('/requests', getLicenseRequests);
  * Middleware: authenticate (app.js), checkActiveLicenseLimit
  * Body: { duration }
  */
-// router.put('/:id/renew', checkActiveLicenseLimit, renewLicense);
+router.put('/:id/renew', checkActiveLicenseLimit, renewLicense);
 
 // ============================================
 // License Usage Routes

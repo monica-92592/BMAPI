@@ -1,26 +1,54 @@
 const express = require('express');
 const router = express.Router();
-// TODO: Import business controller functions
-// const {
-//   getBusinessProfile,
-//   updateBusinessProfile,
-//   getBusinessLimits,
-//   getBusinessStats
-// } = require('../controllers/businessController');
+
+// Import business controller functions
+const {
+  getBusinessLicenses,
+  getLicenseStats,
+  getBusinessLimits,
+  getTierInfo
+} = require('../controllers/businessController');
 
 // All routes require authentication (applied in app.js)
 
-// GET /api/business/profile - Get business profile
-// router.get('/profile', getBusinessProfile);
+// ============================================
+// Business License Routes
+// ============================================
 
-// PUT /api/business/profile - Update business profile
-// router.put('/profile', updateBusinessProfile);
+/**
+ * GET /api/business/licenses
+ * Get business licenses
+ * Middleware: authenticate (app.js)
+ * Query params: asLicensor, asLicensee, status
+ */
+router.get('/licenses', getBusinessLicenses);
 
-// GET /api/business/limits - Get current resource limits (Refined Model)
-// router.get('/limits', getBusinessLimits);
+/**
+ * GET /api/business/licenses/stats
+ * Get license statistics
+ * Middleware: authenticate (app.js)
+ */
+router.get('/licenses/stats', getLicenseStats);
 
-// GET /api/business/stats - Get business statistics
-// router.get('/stats', getBusinessStats);
+// ============================================
+// Business Limits Routes (Refined Model)
+// ============================================
+
+/**
+ * GET /api/business/limits
+ * Get current limit usage (Refined Model)
+ * Middleware: authenticate (app.js)
+ * Response: { uploadCount, uploadLimit, downloadCount, downloadLimit, activeLicenseCount, activeLicenseLimit, tier }
+ */
+router.get('/limits', getBusinessLimits);
+
+/**
+ * GET /api/business/tier
+ * Get tier information and upgrade options (Refined Model)
+ * Middleware: authenticate (app.js)
+ * Response: { currentTier, limits, features, upgradeOptions }
+ */
+router.get('/tier', getTierInfo);
 
 module.exports = router;
 

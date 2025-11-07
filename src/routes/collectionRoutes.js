@@ -1,33 +1,56 @@
 const express = require('express');
 const router = express.Router();
-// TODO: Import collection controller functions
-// const {
-//   createCollection,
-//   getCollectionById,
-//   listCollections,
-//   updateCollection,
-//   deleteCollection,
-//   addMediaToCollection,
-//   removeMediaFromCollection,
-//   getCollectionMembers,
-//   joinCollection,
-//   leaveCollection
-// } = require('../controllers/collectionController');
+
+// Import collection controller functions
+const {
+  createCollection,
+  updateCollection,
+  listCollections,
+  getCollectionDetails
+} = require('../controllers/collectionController');
+
+// Import auth middleware
+const { authenticate, requirePartnerTier } = require('../middlewares/auth');
 
 // All routes require authentication (applied in app.js)
-// All routes require Partner tier or higher (applied in app.js)
+// Partner tier routes require requirePartnerTier middleware
 
-// POST /api/collections - Create new collection/pool (Partner tier only)
-// router.post('/', createCollection);
+// ============================================
+// Collection Management Routes (Partner Tier Only)
+// ============================================
 
-// GET /api/collections - List collections
-// router.get('/', listCollections);
+/**
+ * POST /api/collections
+ * Create collection
+ * Middleware: authenticate, requirePartnerTier
+ * Show upgrade prompt if not Partner tier
+ */
+router.post('/', authenticate, requirePartnerTier, createCollection);
 
-// GET /api/collections/:id - Get collection details
-// router.get('/:id', getCollectionById);
+/**
+ * PUT /api/collections/:id
+ * Update collection
+ * Middleware: authenticate, requirePartnerTier
+ */
+router.put('/:id', authenticate, requirePartnerTier, updateCollection);
 
-// PUT /api/collections/:id - Update collection
-// router.put('/:id', updateCollection);
+// ============================================
+// Collection Viewing Routes (Optional Auth)
+// ============================================
+
+/**
+ * GET /api/collections
+ * List collections
+ * Middleware: authenticate (optional) - handled by optionalAuth in app.js if needed
+ */
+router.get('/', listCollections);
+
+/**
+ * GET /api/collections/:id
+ * Get collection details
+ * Middleware: authenticate (optional) - handled by optionalAuth in app.js if needed
+ */
+router.get('/:id', getCollectionDetails);
 
 // DELETE /api/collections/:id - Delete collection
 // router.delete('/:id', deleteCollection);
