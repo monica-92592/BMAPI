@@ -6,7 +6,19 @@ const rateLimit = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorHandler');
 const mediaRoutes = require('./routes/mediaRoutes');
 const authRoutes = require('./routes/authRoutes');
-const { authenticate } = require('./middlewares/auth');
+const businessRoutes = require('./routes/businessRoutes');
+const licenseRoutes = require('./routes/licenseRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const collectionRoutes = require('./routes/collectionRoutes');
+const proposalRoutes = require('./routes/proposalRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const {
+  authenticate,
+  requirePartnerTier,
+  checkUploadLimit,
+  checkDownloadLimit,
+  checkActiveLicenseLimit
+} = require('./middlewares/auth');
 
 const app = express();
 
@@ -39,7 +51,14 @@ app.use('/api/', limiter);
 app.use('/api/auth', authRoutes);
 
 // Protected routes - require authentication
+// Note: checkUploadLimit is applied at route level in mediaRoutes.js for upload endpoints
 app.use('/api/media', authenticate, mediaRoutes);
+app.use('/api/business', authenticate, businessRoutes);
+app.use('/api/licenses', authenticate, licenseRoutes);
+app.use('/api/subscriptions', authenticate, subscriptionRoutes);
+app.use('/api/collections', authenticate, requirePartnerTier, collectionRoutes);
+app.use('/api/proposals', authenticate, proposalRoutes);
+app.use('/api/transactions', authenticate, transactionRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

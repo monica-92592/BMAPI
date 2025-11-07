@@ -1,19 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const upload = require('../middlewares/upload');
+const { checkUploadLimit } = require('../middlewares/auth');
 const {
   uploadFile,
   getFileById,
   listFiles,
   deleteFile,
   searchFiles,
-  getStats
+  getStats,
+  updateMediaLicensing,
+  setMediaPricing,
+  setMediaLicenseTypes,
+  setMediaUsageRestrictions,
+  makeMediaLicensable,
+  addMediaToPool,
+  removeMediaFromPool,
+  listLicensableMedia,
+  getMediaLicensingInfo
 } = require('../controllers/mediaController');
 const { processImage } = require('../controllers/imageController');
 const { serveFile } = require('../controllers/fileController');
 
 // Upload endpoints (protected - already authenticated via app.js)
-router.post('/upload', upload.single('file'), uploadFile);
+// Apply upload limit check (Refined Model)
+router.post('/upload', checkUploadLimit, upload.single('file'), uploadFile);
 
 // Bulk upload endpoint
 router.post('/upload/bulk', upload.array('files', 10), async (req, res, next) => {
@@ -114,8 +125,21 @@ router.get('/search', searchFiles);
 // Get statistics (must come before /:id route)
 router.get('/stats', getStats);
 
+// List licensable media (must come before /:id route)
+router.get('/licensable', listLicensableMedia);
+
 // List all files (must come before /:id route)
 router.get('/', listFiles);
+
+// Licensing routes (must come before /:id route to avoid conflicts)
+router.put('/:id/licensing', updateMediaLicensing);
+router.put('/:id/pricing', setMediaPricing);
+router.put('/:id/license-types', setMediaLicenseTypes);
+router.put('/:id/usage-restrictions', setMediaUsageRestrictions);
+router.put('/:id/make-licensable', makeMediaLicensable);
+router.put('/:id/pool', addMediaToPool);
+router.delete('/:id/pool', removeMediaFromPool);
+router.get('/:id/licensing-info', getMediaLicensingInfo);
 
 // Get file by ID (must come last to avoid conflicts)
 router.get('/:id', getFileById);

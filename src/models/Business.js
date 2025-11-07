@@ -210,15 +210,15 @@ businessSchema.methods.toJSON = function() {
 businessSchema.virtual('calculatedVotingPower').get(function() {
   // Calculate voting power based on tier
   const tierPower = {
-    'free': 0,
-    'contributor': 1,
-    'partner': 2,
-    'equityPartner': 3
+    'free': 1,
+    'contributor': 2,
+    'partner': 3,
+    'equityPartner': 5
   };
   
   const basePower = tierPower[this.membershipTier] || 0;
-  // Add governance participation bonus
-  const participationBonus = Math.floor(this.governanceParticipation / 10);
+  // Add governance participation bonus (1 vote per 10 participations)
+  const participationBonus = Math.floor((this.governanceParticipation || 0) / 10);
   
   return basePower + participationBonus;
 });

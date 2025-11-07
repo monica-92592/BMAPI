@@ -2,13 +2,16 @@ const request = require('supertest');
 const app = require('../../src/app');
 
 /**
- * Helper to register a test user
+ * Helper to register a test user/business
  */
 const registerTestUser = async (userData = {}) => {
   const defaultUser = {
     email: 'test@example.com',
     password: 'test123',
     name: 'Test User',
+    companyName: 'Test Company',
+    companyType: 'other',
+    industry: 'Technology',
     ...userData
   };
 
