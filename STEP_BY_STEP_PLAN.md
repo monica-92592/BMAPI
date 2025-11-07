@@ -1,15 +1,32 @@
-# Step-by-Step Implementation Plan: Refined "Freemium with Fair Use" Model
+# Step-by-Step Implementation Plan: Hybrid Media Licensing Platform
+
+**Plan Version:** 4.0 (Updated with Revised Project Plan)  
+**Last Updated:** Current  
+**Timeline:** 8 weeks to Beta launch  
+**Fee Model:** Option C - Proportional fee splitting (fees deducted before split)
 
 ## Overview
 
-This document provides detailed step-by-step plans for:
-1. User model → Business model (add fields + resource limits)
-2. Media model → Add licensing fields
-3. Auth middleware → Add tier checks + limit enforcement
-4. Routes → Add licensing routes + limit enforcement
+This document provides detailed step-by-step plans for implementing the Hybrid Media Licensing Platform.
+
+**Current Status:**
+- ✅ Phase 1: Foundation & Business Model (85% complete)
+- ✅ Phase 2: Media Licensing System (90% complete)
+- ✅ Phase 4: Collections & Pools (70% complete - structure only)
+- ❌ Phase 3: Revenue & Transactions (10% complete) - **CRITICAL GAP**
+
+**This Plan Covers:**
+1. ✅ Phase 1: Business Model (Already Implemented)
+2. ✅ Phase 2: Media Licensing (Already Implemented)
+3. 🆕 Phase 3A: Payment Processing Foundation (Weeks 1-2)
+4. 🆕 Phase 3B: License Payment Flow (Weeks 3-4)
+5. 🆕 Phase 3C: Dashboard & Analytics (Week 5)
+6. 🆕 Phase 3D: Pool Revenue Sharing (Week 6)
+7. 🆕 Phase 3E: Production Polish (Week 7)
+8. 🆕 Phase 4: Launch Preparation (Week 8)
 
 **Business Model:** "Freemium with Fair Use"
-- **Free Tier:** 25-50 uploads, 50 downloads/month, 3 active licenses, 80/20 split
+- **Free Tier:** 25 uploads, 50 downloads/month, 3 active licenses, 80/20 split
 - **Contributor Tier:** Unlimited uploads, 85/15 split, $15/month
 - **Partner Tier:** 90/10 split, API access, pool creation, $50/month
 - **Equity Partner Tier:** 95/5 split, ownership stake, $100/month or buy-in
@@ -20,7 +37,1720 @@ This document provides detailed step-by-step plans for:
 
 ---
 
-## 1. User Model → Business Model (Add Fields + Resource Limits)
+## ✅ Already Implemented (Do Not Change)
+
+### Phase 1: Foundation & Business Model (85% Complete) ✅
+
+**Status:** Already implemented - DO NOT MODIFY
+
+**Completed:**
+- ✅ Business model with 4 tiers
+- ✅ User → Business migration
+- ✅ Membership tier system
+- ✅ Resource limit tracking (uploadCount, downloadCount, activeLicenseCount)
+- ✅ Limit enforcement middleware
+- ✅ Tier-based access control
+- ✅ Subscription management endpoints (structure exists)
+
+**Files Already Created:**
+- `src/models/Business.js` - Business schema with all fields
+- `src/config/tiers.js` - Tier configuration with Option C fee splitting
+- `src/middlewares/auth.js` - Auth middleware with tier checks and limit enforcement
+- `src/utils/businessUtils.js` - Business utility functions
+- `scripts/migrate-user-to-business.js` - Migration script
+
+---
+
+### Phase 2: Media Licensing System (90% Complete) ✅
+
+**Status:** Already implemented - DO NOT MODIFY
+
+**Completed:**
+- ✅ License model and workflow
+- ✅ License types (commercial, editorial, exclusive)
+- ✅ License status workflow (pending → approved → active → expired)
+- ✅ All licensing endpoints
+- ✅ Download limit enforcement
+- ✅ Active license limit enforcement
+- ✅ Media licensing fields
+
+**Files Already Created:**
+- `src/models/License.js` - License schema
+- `src/models/Media.js` - Media schema with licensing fields
+- `src/controllers/licenseController.js` - License controller
+- `src/routes/licenseRoutes.js` - License routes
+
+---
+
+### Phase 4: Collections & Pools (70% Complete) ✅
+
+**Status:** Already implemented - DO NOT MODIFY (structure only)
+
+**Completed:**
+- ✅ Collection/Pool model
+- ✅ Pool types (competitive, complementary)
+- ✅ Pool creation (Partner tier only)
+- ✅ Pool management endpoints
+
+**Files Already Created:**
+- `src/models/Collection.js` - Collection schema
+- `src/controllers/collectionController.js` - Collection controller
+- `src/routes/collectionRoutes.js` - Collection routes
+
+**Missing:** Pool revenue sharing implementation (Phase 3D)
+
+---
+
+## 🆕 NEW IMPLEMENTATION: Phase 3A-3E & Phase 4 Launch Prep
+
+**Focus:** Payment Processing, Revenue Distribution, Dashboards, Pool Revenue, Production Polish
+
+---
+
+## PHASE 3A: Payment Processing Foundation (Weeks 1-2)
+
+### Week 1: Stripe Setup & Integration
+
+#### Step 3A.1: Stripe Account Configuration (Day 1-2)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Stripe account (production + test mode)
+- Webhook endpoint URL (production)
+
+**Tasks:**
+
+1. **Create Stripe Configuration File**
+   - Create `src/config/stripe.js`
+   - Initialize Stripe with secret key from environment
+   - Export Stripe instance
+
+2. **Create Stripe Service Wrapper**
+   - Create `src/services/stripeService.js`
+   - Create `StripeService` class
+   - Add methods: `createCustomer()`, `createPaymentMethod()`, `createSubscription()`
+
+3. **Set Up Environment Variables**
+   - Add to `.env`:
+     ```bash
+     STRIPE_SECRET_KEY=sk_test_...
+     STRIPE_PUBLISHABLE_KEY=pk_test_...
+     STRIPE_WEBHOOK_SECRET=whsec_...
+     STRIPE_CONNECT_CLIENT_ID=ca_...
+     ```
+   - Update `env.example` with these variables
+
+4. **Enable Stripe Connect**
+   - Log into Stripe Dashboard
+   - Navigate to Connect settings
+   - Enable Connect platform
+   - Get Connect Client ID
+   - Configure Connect settings (Express accounts)
+
+5. **Configure Webhook Endpoint**
+   - In Stripe Dashboard, go to Webhooks
+   - Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
+   - Select events to listen for:
+     - `customer.subscription.created`
+     - `invoice.payment_succeeded`
+     - `invoice.payment_failed`
+     - `customer.subscription.deleted`
+     - `payment_intent.succeeded`
+     - `charge.refunded`
+     - `charge.dispute.created`
+     - `payout.paid`
+     - `payout.failed`
+   - Copy webhook signing secret
+
+6. **Test Stripe Connection**
+   - Create test script: `scripts/test-stripe-connection.js`
+   - Test API key connection
+   - Verify webhook endpoint accessible
+
+**Deliverables:**
+- [ ] `src/config/stripe.js` created
+- [ ] `src/services/stripeService.js` created
+- [ ] Environment variables configured
+- [ ] Stripe Connect enabled
+- [ ] Webhook endpoint configured
+- [ ] Test connection successful
+
+**Files to Create:**
+```
+src/config/stripe.js
+src/services/stripeService.js
+scripts/test-stripe-connection.js
+```
+
+---
+
+#### Step 3A.2: Create Transaction Model (Day 3-5)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Business model exists (already done)
+- License model exists (already done)
+
+**Tasks:**
+
+1. **Create Transaction Schema**
+   - Create `src/models/Transaction.js`
+   - Define transaction types enum:
+     - `subscription_payment`
+     - `license_payment`
+     - `payout`
+     - `refund`
+     - `chargeback`
+     - `platform_fee`
+
+2. **Add Amount Fields**
+   - `grossAmount: Number` (required)
+   - `stripeFee: Number` (required)
+   - `netAmount: Number` (required)
+   - `creatorShare: Number`
+   - `platformShare: Number`
+
+3. **Add Status Field**
+   - `status: { type: String, enum: ['pending', 'completed', 'failed', 'refunded', 'disputed'], default: 'pending' }`
+
+4. **Add Stripe References**
+   - `stripePaymentIntentId: String`
+   - `stripePayoutId: String`
+   - `stripeRefundId: String`
+   - `stripeChargeId: String`
+
+5. **Add Relationships**
+   - `relatedLicense: { type: Schema.Types.ObjectId, ref: 'License' }`
+   - `payer: { type: Schema.Types.ObjectId, ref: 'Business' }` (required)
+   - `payee: { type: Schema.Types.ObjectId, ref: 'Business' }`
+
+6. **Add Metadata Field**
+   - `metadata: Schema.Types.Mixed` (for chargeback reserves, pool info, etc.)
+
+7. **Add Timestamps**
+   - `createdAt: Date` (default: Date.now)
+   - `completedAt: Date`
+   - `refundedAt: Date`
+
+8. **Add Indexes**
+   - Index on `payer`
+   - Index on `payee`
+   - Index on `stripePaymentIntentId`
+   - Index on `type`
+   - Index on `status`
+   - Index on `createdAt`
+   - Index on `metadata.collectionId` (for pool transactions)
+
+9. **Add Methods**
+   - `calculateRevenueSplit(tierRevenueSplit)` - Calculate splits based on tier
+   - `markCompleted()` - Mark transaction as completed
+   - `markRefunded()` - Mark transaction as refunded
+
+10. **Add Validation**
+    - Validate grossAmount > 0
+    - Validate netAmount = grossAmount - stripeFee
+    - Validate creatorShare + platformShare = netAmount (if both present)
+
+11. **Create Model Tests**
+    - Create `tests/unit/models/Transaction.test.js`
+    - Test schema validation
+    - Test methods
+    - Test relationships
+
+**Deliverables:**
+- [ ] Transaction model created
+- [ ] All fields defined
+- [ ] Methods implemented
+- [ ] Indexes added
+- [ ] Model tests written and passing
+
+**Files to Create:**
+```
+src/models/Transaction.js
+tests/unit/models/Transaction.test.js
+```
+
+---
+
+#### Step 3A.3: Stripe Connect for Creators (Day 6-7)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Stripe Connect enabled (Step 3A.1)
+- Business model exists (already done)
+
+**Tasks:**
+
+1. **Update Business Model**
+   - Add to `src/models/Business.js`:
+     ```javascript
+     // Stripe Connect
+     stripeConnectAccountId: String,
+     stripeConnectStatus: {
+       type: String,
+       enum: ['not_started', 'pending', 'active', 'disabled'],
+       default: 'not_started'
+     },
+     stripeConnectOnboardedAt: Date,
+     ```
+
+2. **Add Stripe Connect Methods to StripeService**
+   - Add to `src/services/stripeService.js`:
+     - `createConnectAccount(businessId)` - Create Express account
+     - `createAccountLink(stripeAccountId, businessId)` - Generate onboarding URL
+     - `isAccountActive(stripeAccountId)` - Check if fully onboarded
+     - `retrieveConnectAccount(stripeAccountId)` - Get account details
+
+3. **Create Stripe Connect Controller**
+   - Create `src/controllers/stripeController.js`
+   - Add `onboardConnect` function:
+     - Create or retrieve Connect account
+     - Generate onboarding link
+     - Update business stripeConnectStatus
+     - Return onboarding URL
+   - Add `getConnectStatus` function:
+     - Check account status
+     - Return status and onboarding URL if needed
+   - Add `disconnectAccount` function:
+     - Disable Connect account
+     - Update business status
+
+4. **Create Stripe Connect Routes**
+   - Create `src/routes/stripeRoutes.js`
+   - Add routes:
+     - `POST /api/stripe/connect/onboard` - Start Connect onboarding
+     - `GET /api/stripe/connect/status` - Check Connect status
+     - `DELETE /api/stripe/connect/disconnect` - Disconnect account
+     - `GET /api/stripe/connect/callback` - Handle OAuth return
+
+5. **Add Routes to App**
+   - Update `src/app.js`:
+     - Import `stripeRoutes`
+     - Add route: `app.use('/api/stripe', authenticate, stripeRoutes)`
+
+6. **Create Tests**
+   - Create `tests/integration/stripeConnect.test.js`
+   - Test onboarding flow
+   - Test status checking
+   - Test account creation
+
+**Deliverables:**
+- [ ] Business model updated with Stripe Connect fields
+- [ ] StripeService methods added
+- [ ] Stripe Connect controller created
+- [ ] Stripe Connect routes created
+- [ ] Routes added to app
+- [ ] Tests written and passing
+
+**Files to Create/Update:**
+```
+src/controllers/stripeController.js (NEW)
+src/routes/stripeRoutes.js (NEW)
+src/models/Business.js (UPDATE - add Stripe Connect fields)
+src/services/stripeService.js (UPDATE - add Connect methods)
+src/app.js (UPDATE - add routes)
+tests/integration/stripeConnect.test.js (NEW)
+```
+
+---
+
+### Week 2: Subscription Payment Flow
+
+#### Step 3A.4: Subscription Billing (Day 8-10)
+
+**Status:** ⚠️ Partially Complete (endpoints exist, payment processing missing)
+
+**Prerequisites:**
+- Stripe setup complete (Step 3A.1)
+- Transaction model created (Step 3A.2)
+- Tier configuration exists (already done)
+
+**Tasks:**
+
+1. **Update Business Model**
+   - Add to `src/models/Business.js`:
+     ```javascript
+     // Stripe Customer
+     stripeCustomerId: String,
+     stripeSubscriptionId: String,
+     ```
+
+2. **Update Subscription Controller**
+   - Update `src/controllers/subscriptionController.js`:
+   - Modify `upgradeSubscription` function:
+     - Get tier config (already exists)
+     - Create or retrieve Stripe customer
+     - Attach payment method
+     - Set as default payment method
+     - Create Stripe subscription
+     - Update business tier and subscription fields
+     - Create transaction record
+     - Return subscription details
+
+3. **Add Stripe Customer Methods to StripeService**
+   - Add to `src/services/stripeService.js`:
+     - `createCustomer(email, metadata)` - Create Stripe customer
+     - `retrieveCustomer(customerId)` - Get customer
+     - `attachPaymentMethod(customerId, paymentMethodId)` - Attach payment method
+     - `createSubscription(customerId, priceId, metadata)` - Create subscription
+     - `cancelSubscription(subscriptionId)` - Cancel subscription
+
+4. **Update Subscription Routes**
+   - Update `POST /api/subscriptions/upgrade` in `src/routes/subscriptionRoutes.js`:
+     - Add payment processing
+     - Handle payment method attachment
+     - Create subscription
+     - Record transaction
+
+5. **Create Transaction on Upgrade**
+   - In `upgradeSubscription`:
+     - Calculate Stripe fee: `(price * 0.029) + 0.30`
+     - Calculate net amount: `price - stripeFee`
+     - Create Transaction:
+       - type: `subscription_payment`
+       - grossAmount: tier price
+       - stripeFee: calculated fee
+       - netAmount: calculated net
+       - platformShare: netAmount (all to platform for subscriptions)
+       - status: `completed`
+       - payer: business._id
+       - stripePaymentIntentId: subscription.latest_invoice
+
+6. **Update Business on Upgrade**
+   - Set `membershipTier` to new tier
+   - Set `subscriptionStatus` to `active`
+   - Set `subscriptionExpiry` to subscription period end
+   - Set `stripeCustomerId` if new
+   - Set `stripeSubscriptionId`
+   - Save business
+
+7. **Handle Errors**
+   - Payment method attachment failures
+   - Subscription creation errors
+   - Return user-friendly error messages
+
+8. **Create Tests**
+   - Create `tests/integration/subscriptionPayment.test.js`
+   - Test subscription upgrade with payment
+   - Test customer creation
+   - Test payment method attachment
+   - Test transaction recording
+
+**Deliverables:**
+- [ ] Business model updated with Stripe customer fields
+- [ ] Subscription controller updated with payment processing
+- [ ] StripeService methods added
+- [ ] Subscription routes updated
+- [ ] Transaction recording on upgrade
+- [ ] Tests written and passing
+
+**Files to Update:**
+```
+src/models/Business.js (UPDATE - add Stripe customer fields)
+src/controllers/subscriptionController.js (UPDATE - add payment processing)
+src/services/stripeService.js (UPDATE - add customer/subscription methods)
+src/routes/subscriptionRoutes.js (UPDATE - enhance upgrade route)
+tests/integration/subscriptionPayment.test.js (NEW)
+```
+
+---
+
+#### Step 3A.5: Subscription Webhooks (Day 11-12)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Webhook endpoint configured (Step 3A.1)
+- Transaction model created (Step 3A.2)
+- Subscription payment flow working (Step 3A.4)
+
+**Tasks:**
+
+1. **Create Webhook Controller**
+   - Create `src/controllers/webhookController.js`
+   - Add `handleStripeWebhook` function:
+     - Verify webhook signature
+     - Parse event
+     - Route to appropriate handler
+     - Return 200 status
+
+2. **Create Webhook Handlers**
+   - Add to `src/controllers/webhookController.js`:
+     - `handleSubscriptionCreated(subscription)` - Update business tier
+     - `handleInvoicePaymentSucceeded(invoice)` - Record transaction, extend subscription
+     - `handleInvoicePaymentFailed(invoice)` - Handle failures, downgrade after 3 attempts
+     - `handleSubscriptionDeleted(subscription)` - Downgrade to free tier
+
+3. **Implement Subscription Created Handler**
+   - Find business by metadata.businessId
+   - Update tier if needed
+   - Log event
+
+4. **Implement Invoice Payment Succeeded Handler**
+   - Find business by customer ID
+   - Create transaction record:
+     - type: `subscription_payment`
+     - grossAmount: invoice.amount_paid / 100
+     - stripeFee: calculate fee
+     - netAmount: calculate net
+     - platformShare: netAmount
+     - status: `completed`
+     - payer: business._id
+     - stripePaymentIntentId: invoice.payment_intent
+   - Update business subscriptionExpiry
+   - Save transaction
+
+5. **Implement Invoice Payment Failed Handler**
+   - Find business by customer ID
+   - Check attempt_count
+   - If >= 3 attempts:
+     - Downgrade to free tier
+     - Set subscriptionStatus to `cancelled`
+     - Send notification (TODO: Phase 3E)
+   - Log failure
+
+6. **Implement Subscription Deleted Handler**
+   - Find business by metadata.businessId
+   - Set subscriptionStatus to `cancelled`
+   - Set membershipTier to `free`
+   - Save business
+
+7. **Create Webhook Routes**
+   - Create `src/routes/webhookRoutes.js`
+   - Add route: `POST /api/webhooks/stripe`
+   - Use `express.raw({ type: 'application/json' })` middleware
+   - Call `handleStripeWebhook`
+
+8. **Add Webhook Route to App**
+   - Update `src/app.js`:
+     - Import `webhookRoutes`
+     - Add route: `app.use('/api/webhooks', webhookRoutes)` (NO AUTH - webhooks are signed)
+
+9. **Add Webhook Signature Verification**
+   - In `handleStripeWebhook`:
+     - Get signature from headers
+     - Verify using `stripe.webhooks.constructEvent()`
+     - Handle verification errors
+
+10. **Create Tests**
+    - Create `tests/integration/webhooks.test.js`
+    - Test webhook signature verification
+    - Test each webhook handler
+    - Test idempotency (handle duplicate events)
+
+**Deliverables:**
+- [ ] Webhook controller created
+- [ ] All webhook handlers implemented
+- [ ] Webhook routes created
+- [ ] Signature verification working
+- [ ] Tests written and passing
+
+**Files to Create:**
+```
+src/controllers/webhookController.js (NEW)
+src/routes/webhookRoutes.js (NEW)
+src/app.js (UPDATE - add webhook routes)
+tests/integration/webhooks.test.js (NEW)
+```
+
+---
+
+## PHASE 3B: License Payment Flow (Weeks 3-4)
+
+### Week 3: License Purchase & Revenue Split
+
+#### Step 3B.1: License Payment Processing (Day 13-15)
+
+**Status:** ⚠️ Partially Complete (license creation exists, payment missing)
+
+**Prerequisites:**
+- Stripe Connect working (Step 3A.3)
+- Transaction model created (Step 3A.2)
+- License model exists (already done)
+- Tier configuration exists (already done)
+
+**Tasks:**
+
+1. **Update License Creation Endpoint**
+   - Update `POST /api/licenses` in `src/controllers/licenseController.js`:
+   - Modify `createLicenseRequest` function:
+     - Add `paymentMethodId` to request body
+     - Check licensor has Stripe Connect active
+     - Calculate fees and splits (Option C)
+     - Create payment intent with destination charge
+     - Auto-approve license on payment success
+     - Update creator balance
+     - Record transaction
+     - Add to transaction histories
+
+2. **Add Payment Processing Logic**
+   - In `createLicenseRequest`:
+     - Get media and licensor (already exists)
+     - Check `licensor.stripeConnectStatus === 'active'`
+     - Get price from media pricing
+     - Calculate Stripe fee: `(price * 0.029) + 0.30`
+     - Calculate net amount: `price - stripeFee`
+     - Get tier config for licensor
+     - Calculate creator share: `(netAmount * tierConfig.revenueSplit.creator) / 100`
+     - Calculate platform share: `(netAmount * tierConfig.revenueSplit.platform) / 100`
+
+3. **Create Payment Intent with Destination Charge**
+   - Use StripeService:
+     - Create payment intent
+     - Set `transfer_data.destination` to licensor's Connect account
+     - Set `transfer_data.amount` to creator share (in cents)
+     - Confirm payment intent
+     - Handle payment failures
+
+4. **Auto-Approve License on Payment Success**
+   - If payment succeeds:
+     - Set license status to `active`
+     - Set `approvedAt` to now
+     - Calculate expiry date
+     - Increment licensee's `activeLicenseCount`
+     - Add to media's `activeLicenses` array
+
+5. **Update Creator Balance**
+   - Calculate chargeback reserve: `creatorShare * 0.05`
+   - Immediate payout: `creatorShare - chargebackReserve`
+   - Update licensor:
+     - `balance += immediatePayout`
+     - `totalEarnings += immediatePayout`
+   - Save licensor
+
+6. **Record Transaction**
+   - Create Transaction:
+     - type: `license_payment`
+     - grossAmount: price
+     - stripeFee: calculated fee
+     - netAmount: calculated net
+     - creatorShare: calculated share
+     - platformShare: calculated share
+     - status: `completed`
+     - stripePaymentIntentId: payment intent ID
+     - relatedLicense: license._id
+     - payer: licensee._id
+     - payee: licensor._id
+     - metadata: { chargebackReserve, reserveReleaseDate }
+
+7. **Update Transaction Histories**
+   - Add transaction to licensee's `transactionHistory`
+   - Add transaction to licensor's `transactionHistory`
+   - Save both businesses
+
+8. **Handle Errors**
+   - Stripe Connect not active
+   - Payment method declined
+   - Transfer failures
+   - Return user-friendly error messages
+
+9. **Create Tests**
+   - Create `tests/integration/licensePayment.test.js`
+   - Test license purchase with payment
+   - Test revenue split calculation (Option C)
+   - Test balance updates
+   - Test transaction recording
+   - Test chargeback reserve
+
+**Deliverables:**
+- [ ] License creation updated with payment processing
+- [ ] Revenue split calculation (Option C) implemented
+- [ ] Stripe Connect transfers working
+- [ ] Creator balances updated automatically
+- [ ] Transactions recorded
+- [ ] Chargeback reserve calculated
+- [ ] Tests written and passing
+
+**Files to Update:**
+```
+src/controllers/licenseController.js (UPDATE - add payment processing)
+src/services/stripeService.js (UPDATE - add payment intent methods)
+tests/integration/licensePayment.test.js (NEW)
+```
+
+---
+
+#### Step 3B.2: Refund Handling (Day 16-17)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- License payment flow working (Step 3B.1)
+- Transaction model created (Step 3A.2)
+
+**Tasks:**
+
+1. **Update Business Model**
+   - Add to `src/models/Business.js`:
+     ```javascript
+     balanceStatus: {
+       type: String,
+       enum: ['positive', 'negative', 'suspended'],
+       default: 'positive'
+     },
+     ```
+
+2. **Create Refund Endpoint**
+   - Add to `src/controllers/licenseController.js`:
+   - Create `requestRefund` function:
+     - Find license by ID
+     - Verify licensee is requesting refund
+     - Check 14-day refund window
+     - Find original transaction
+     - Process Stripe refund
+     - Reverse revenue split
+     - Cancel license
+     - Decrement active license count
+     - Record refund transaction
+
+3. **Add Refund Route**
+   - Add to `src/routes/licenseRoutes.js`:
+     - `POST /api/licenses/:id/refund`
+     - Middleware: `authenticate`
+     - Body: `{ reason: String }`
+     - Controller: `requestRefund`
+
+4. **Implement Refund Logic**
+   - In `requestRefund`:
+     - Check license exists
+     - Verify licensee owns license
+     - Calculate days since purchase
+     - If > 14 days, return error
+     - Find transaction with `relatedLicense` and `type: 'license_payment'`
+     - Create Stripe refund
+     - Reverse creator balance: `licensor.balance -= transaction.creatorShare`
+     - Check for negative balance
+     - If negative, set `balanceStatus` to `negative` or `suspended`
+     - Cancel license: `license.status = 'cancelled'`
+     - Decrement: `licensee.activeLicenseCount--`
+     - Create refund transaction (negative amounts)
+     - Mark original transaction as refunded
+
+5. **Handle Negative Balances**
+   - If balance < 0:
+     - Set `balanceStatus` to `negative`
+     - If balance < -$50:
+     - Set `balanceStatus` to `suspended`
+     - Prevent new licenses until balance positive
+
+6. **Create Refund Transaction**
+   - Create Transaction:
+     - type: `refund`
+     - grossAmount: `-transaction.grossAmount`
+     - stripeFee: 0 (Stripe doesn't refund fees)
+     - netAmount: `-transaction.netAmount`
+     - creatorShare: `-transaction.creatorShare`
+     - platformShare: `-transaction.platformShare`
+     - status: `completed`
+     - stripeRefundId: refund.id
+     - relatedLicense: license._id
+     - payer: licensor._id (creator returns money)
+     - payee: licensee._id (buyer receives money)
+     - metadata: { reason }
+
+7. **Update Original Transaction**
+   - Set `status` to `refunded`
+   - Set `refundedAt` to now
+
+8. **Create Tests**
+   - Create `tests/integration/refund.test.js`
+   - Test refund within 14 days
+   - Test refund after 14 days (should fail)
+   - Test balance reversal
+   - Test negative balance handling
+   - Test license cancellation
+
+**Deliverables:**
+- [ ] Business model updated with balanceStatus
+- [ ] Refund endpoint created
+- [ ] 14-day refund window enforced
+- [ ] Revenue splits reversed
+- [ ] Negative balance handling
+- [ ] Refund transactions recorded
+- [ ] Tests written and passing
+
+**Files to Update:**
+```
+src/models/Business.js (UPDATE - add balanceStatus)
+src/controllers/licenseController.js (UPDATE - add requestRefund)
+src/routes/licenseRoutes.js (UPDATE - add refund route)
+src/services/stripeService.js (UPDATE - add refund method)
+tests/integration/refund.test.js (NEW)
+```
+
+---
+
+### Week 4: Payouts & Edge Cases
+
+#### Step 3B.3: Payout System (Day 18-20)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Stripe Connect working (Step 3A.3)
+- Transaction model created (Step 3A.2)
+- Business balance tracking exists (already done)
+
+**Tasks:**
+
+1. **Create Payout Controller**
+   - Create `src/controllers/payoutController.js`
+   - Add `getPayoutHistory` function:
+     - Find all transactions with `type: 'payout'` and `payee: business._id`
+     - Return sorted by createdAt
+   - Add `requestPayout` function:
+     - Check minimum $25 balance
+     - Check Stripe Connect active
+     - Create payout via Stripe Connect
+     - Record transaction
+     - Deduct from balance
+
+2. **Create Payout Routes**
+   - Create `src/routes/payoutRoutes.js`
+   - Add routes:
+     - `GET /api/payouts` - Get payout history
+     - `POST /api/payouts/request` - Request payout
+   - Middleware: `authenticate`
+
+3. **Implement Payout Request Logic**
+   - In `requestPayout`:
+     - Check `business.balance >= 25`
+     - Check `business.stripeConnectStatus === 'active'`
+     - Create payout via Stripe:
+       - Use `stripe.payouts.create()` with Connect account
+       - Amount: `business.balance * 100` (convert to cents)
+       - Currency: `usd`
+       - Metadata: `{ businessId: business._id }`
+     - Create transaction:
+       - type: `payout`
+       - grossAmount: business.balance
+       - netAmount: business.balance
+       - creatorShare: business.balance
+       - status: `pending`
+       - stripePayoutId: payout.id
+       - payee: business._id
+     - Set `business.balance = 0`
+     - Save business and transaction
+
+4. **Add Payout Webhook Handlers**
+   - Add to `src/controllers/webhookController.js`:
+     - `handlePayoutPaid(payout)` - Mark transaction completed
+     - `handlePayoutFailed(payout)` - Return money to balance
+
+5. **Implement Payout Paid Handler**
+   - Find transaction by `stripePayoutId`
+   - Set `status` to `completed`
+   - Set `completedAt` to now
+   - Save transaction
+
+6. **Implement Payout Failed Handler**
+   - Find transaction by `stripePayoutId`
+   - Find business by metadata.businessId
+   - Return money: `business.balance += transaction.grossAmount`
+   - Set transaction `status` to `failed`
+   - Save business and transaction
+
+7. **Add Payout Routes to App**
+   - Update `src/app.js`:
+     - Import `payoutRoutes`
+     - Add route: `app.use('/api/payouts', authenticate, payoutRoutes)`
+
+8. **Add Payout Webhook Events**
+   - Update webhook handler:
+     - Add `payout.paid` case
+     - Add `payout.failed` case
+
+9. **Create Tests**
+   - Create `tests/integration/payout.test.js`
+   - Test payout request with sufficient balance
+   - Test payout request with insufficient balance
+   - Test payout webhook handlers
+   - Test failed payout handling
+
+**Deliverables:**
+- [ ] Payout controller created
+- [ ] Payout routes created
+- [ ] $25 minimum payout enforced
+- [ ] Payout via Stripe Connect working
+- [ ] Payout status tracking
+- [ ] Failed payout handling
+- [ ] Tests written and passing
+
+**Files to Create:**
+```
+src/controllers/payoutController.js (NEW)
+src/routes/payoutRoutes.js (NEW)
+src/app.js (UPDATE - add payout routes)
+src/controllers/webhookController.js (UPDATE - add payout handlers)
+tests/integration/payout.test.js (NEW)
+```
+
+---
+
+#### Step 3B.4: Chargeback Protection (Day 21-22)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- License payment flow working (Step 3B.1)
+- Transaction model created (Step 3A.2)
+- Cron job infrastructure
+
+**Tasks:**
+
+1. **Update License Payment Flow**
+   - Modify `createLicenseRequest` in `src/controllers/licenseController.js`:
+   - After calculating creator share:
+     - Calculate chargeback reserve: `creatorShare * 0.05`
+     - Immediate payout: `creatorShare - chargebackReserve`
+     - Store reserve in transaction metadata:
+       - `chargebackReserve`: reserve amount
+       - `reserveReleaseDate`: Date.now() + 90 days
+
+2. **Create Chargeback Reserve Cron Job**
+   - Create `src/jobs/chargebackReserve.js`
+   - Install `node-cron`: `npm install node-cron`
+   - Create cron job:
+     - Schedule: `0 0 * * *` (midnight daily)
+     - Find transactions:
+       - `type: 'license_payment'`
+       - `status: 'completed'`
+       - `metadata.reserveReleased: { $ne: true }`
+       - `createdAt: { $lt: 90 days ago }`
+     - For each transaction:
+       - Release reserve: `creator.balance += metadata.chargebackReserve`
+       - Set `metadata.reserveReleased = true`
+       - Save transaction and creator
+
+3. **Add Chargeback Webhook Handler**
+   - Add to `src/controllers/webhookController.js`:
+     - `handleChargeDisputed(charge)` - Handle chargeback
+
+4. **Implement Chargeback Handler**
+   - In `handleChargeDisputed`:
+     - Find transaction by `stripeChargeId`
+     - If not found, return
+     - Set transaction `status` to `disputed`
+     - Find licensor (creator)
+     - Deduct from balance: `licensor.balance -= transaction.creatorShare`
+     - Check for negative balance
+     - If negative, set `balanceStatus` to `suspended`
+     - Cancel related license
+     - Save licensor and license
+
+5. **Add Chargeback Webhook Event**
+   - Update webhook handler:
+     - Add `charge.dispute.created` case
+
+6. **Set Up Cron Job**
+   - Update `server.js` or create `src/jobs/index.js`:
+     - Import chargeback reserve job
+     - Start cron job on server start
+     - Handle errors gracefully
+
+7. **Create Tests**
+   - Create `tests/integration/chargeback.test.js`
+   - Test reserve calculation
+   - Test reserve release after 90 days
+   - Test chargeback handling
+   - Test account suspension
+
+**Deliverables:**
+- [ ] Chargeback reserve system (5% held for 90 days)
+- [ ] Daily cron job for reserve release
+- [ ] Chargeback webhook handling
+- [ ] Account suspension on negative balance
+- [ ] Tests written and passing
+
+**Files to Create/Update:**
+```
+src/jobs/chargebackReserve.js (NEW)
+src/controllers/licenseController.js (UPDATE - add reserve calculation)
+src/controllers/webhookController.js (UPDATE - add chargeback handler)
+src/server.js (UPDATE - start cron job)
+tests/integration/chargeback.test.js (NEW)
+package.json (UPDATE - add node-cron)
+```
+
+---
+
+## PHASE 3C: Dashboard & Analytics (Week 5)
+
+### Week 5: Creator & Platform Dashboards
+
+#### Step 3C.1: Creator Financial Dashboard (Day 23-25)
+
+**Status:** ⚠️ Partially Complete (basic stats exist)
+
+**Prerequisites:**
+- Transaction model created (Step 3A.2)
+- License model exists (already done)
+- Business model exists (already done)
+
+**Tasks:**
+
+1. **Create Financial Overview Endpoint**
+   - Add to `src/controllers/businessController.js`:
+   - Create `getFinancialOverview` function:
+     - Get current balance
+     - Calculate total earnings (sum of creatorShare from completed transactions)
+     - Calculate total spent (sum of grossAmount from payments)
+     - Get pending payouts
+     - Get active license count
+     - Get recent transactions (last 10)
+     - Calculate monthly revenue trend (last 12 months)
+     - Calculate chargeback reserve
+     - Check payout eligibility
+
+2. **Add Financial Overview Route**
+   - Add to `src/routes/businessRoutes.js`:
+     - `GET /api/business/financial/overview`
+     - Middleware: `authenticate`
+     - Controller: `getFinancialOverview`
+
+3. **Implement Earnings Calculation**
+   - Aggregate transactions:
+     - Match: `payee: business._id`, `type: ['license_payment', 'platform_fee']`, `status: 'completed'`
+     - Group: sum `creatorShare`
+     - Return total
+
+4. **Implement Spent Calculation**
+   - Aggregate transactions:
+     - Match: `payer: business._id`, `type: ['license_payment', 'subscription_payment']`, `status: 'completed'`
+     - Group: sum `grossAmount`
+     - Return total
+
+5. **Implement Monthly Revenue Trend**
+   - Aggregate transactions:
+     - Match: `payee: business._id`, `type: 'license_payment'`, `status: 'completed'`, `createdAt: { $gte: 12 months ago }`
+     - Group by year and month
+     - Sum `creatorShare` per month
+     - Sort by date
+     - Return array of { year, month, revenue, count }
+
+6. **Implement Chargeback Reserve Calculation**
+   - Aggregate transactions:
+     - Match: `payee: business._id`, `type: 'license_payment'`, `status: 'completed'`, `metadata.reserveReleased: { $ne: true }`
+     - Project: `reserve = creatorShare * 0.05`
+     - Group: sum reserves
+     - Return total
+
+7. **Create Transaction History Endpoint**
+   - Add to `src/controllers/businessController.js`:
+   - Create `getTransactionHistory` function:
+     - Find transactions where business is payer or payee
+     - Filter by type and status (query params)
+     - Paginate (page, limit)
+     - Populate relatedLicense, payer, payee
+     - Return transactions with pagination info
+
+8. **Add Transaction History Route**
+   - Add to `src/routes/businessRoutes.js`:
+     - `GET /api/business/transactions`
+     - Middleware: `authenticate`
+     - Query params: `page`, `limit`, `type`, `status`
+     - Controller: `getTransactionHistory`
+
+9. **Create Pool Earnings Endpoint**
+   - Add to `src/controllers/businessController.js`:
+   - Create `getPoolEarnings` function:
+     - Find collections where business is member
+     - Extract earnings data from collection.memberEarnings
+     - Calculate total pool earnings
+     - Return breakdown per pool
+
+10. **Add Pool Earnings Route**
+    - Add to `src/routes/businessRoutes.js`:
+      - `GET /api/business/pool-earnings`
+      - Middleware: `authenticate`
+      - Controller: `getPoolEarnings`
+
+11. **Create Tests**
+    - Create `tests/integration/financialDashboard.test.js`
+    - Test financial overview
+    - Test transaction history
+    - Test pool earnings
+    - Test calculations accuracy
+
+**Deliverables:**
+- [ ] Financial overview endpoint
+- [ ] Transaction history with filtering
+- [ ] Monthly revenue trends
+- [ ] Chargeback reserve calculation
+- [ ] Pool earnings endpoint
+- [ ] Tests written and passing
+
+**Files to Update:**
+```
+src/controllers/businessController.js (UPDATE - add financial methods)
+src/routes/businessRoutes.js (UPDATE - add financial routes)
+tests/integration/financialDashboard.test.js (NEW)
+```
+
+---
+
+#### Step 3C.2: Platform Analytics (Day 26-27)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Transaction model created (Step 3A.2)
+- Business model exists (already done)
+- Admin authentication
+
+**Tasks:**
+
+1. **Add Admin Middleware**
+   - Add to `src/middlewares/auth.js`:
+     - Create `requireAdmin` function:
+       - Check `req.user.isAdmin === true`
+       - Return 403 if not admin
+
+2. **Update Business/User Model**
+   - Add to `src/models/Business.js` (or User if separate):
+     - `isAdmin: { type: Boolean, default: false }`
+
+3. **Create Admin Controller**
+   - Create `src/controllers/adminController.js`
+   - Add `getPlatformOverview` function:
+     - Calculate total revenue breakdown
+     - Get active subscriptions by tier
+     - Get user metrics
+     - Get license statistics
+     - Calculate refund rate
+     - Calculate chargeback rate
+
+4. **Create Admin Routes**
+   - Create `src/routes/adminRoutes.js`
+   - Add routes:
+     - `GET /api/admin/platform/overview` - Platform overview
+     - `GET /api/admin/platform/revenue-trends` - Revenue trends
+   - Middleware: `authenticate`, `requireAdmin`
+
+5. **Implement Platform Overview**
+   - In `getPlatformOverview`:
+     - Aggregate total revenue:
+       - Match: `status: 'completed'`, `type: ['license_payment', 'subscription_payment']`
+       - Group: sum gross, platform, creator, stripe fees
+     - Get subscriptions by tier:
+       - Aggregate businesses with `subscriptionStatus: 'active'`
+       - Group by `membershipTier`
+       - Count per tier
+     - Get user metrics:
+       - Total businesses
+       - Free users count
+       - Paid users count
+       - Conversion rate
+     - Get license statistics:
+       - Aggregate licenses by status
+       - Count per status
+     - Calculate refund rate:
+       - Total sales count
+       - Refund count
+       - Rate = (refunds / sales) * 100
+     - Calculate chargeback rate:
+       - Disputed transactions count
+       - Rate = (disputes / sales) * 100
+
+6. **Implement Revenue Trends**
+   - In `getRevenueTrends`:
+     - Get period from query (30days or 12months)
+     - Aggregate transactions:
+       - Match: `status: 'completed'`, `createdAt: { $gte: period start }`
+       - Group by day/month
+       - Sum gross, platform, transactions count
+       - Sort by date
+     - Return trends array
+
+7. **Add Admin Routes to App**
+   - Update `src/app.js`:
+     - Import `adminRoutes`
+     - Add route: `app.use('/api/admin', authenticate, requireAdmin, adminRoutes)`
+
+8. **Create Admin User**
+   - Create seed script or manual process:
+     - Set `isAdmin: true` for one business/user
+
+9. **Create Tests**
+   - Create `tests/integration/adminAnalytics.test.js`
+   - Test platform overview
+   - Test revenue trends
+   - Test admin access control
+
+**Deliverables:**
+- [ ] Admin middleware created
+- [ ] Platform overview dashboard
+- [ ] Revenue trends analytics
+- [ ] Subscription metrics
+- [ ] Refund/chargeback rates
+- [ ] Admin-only access control
+- [ ] Tests written and passing
+
+**Files to Create/Update:**
+```
+src/controllers/adminController.js (NEW)
+src/routes/adminRoutes.js (NEW)
+src/middlewares/auth.js (UPDATE - add requireAdmin)
+src/models/Business.js (UPDATE - add isAdmin)
+src/app.js (UPDATE - add admin routes)
+tests/integration/adminAnalytics.test.js (NEW)
+```
+
+---
+
+## PHASE 3D: Pool Revenue Sharing (Week 6)
+
+### Week 6: Complete Pool Licensing & Revenue Distribution
+
+#### Step 3D.1: Pool Licensing Workflow (Day 28-30)
+
+**Status:** ⚠️ Partially Complete (pool structure exists, licensing missing)
+
+**Prerequisites:**
+- Collection model exists (already done)
+- Stripe Connect working (Step 3A.3)
+- Transaction model created (Step 3A.2)
+- License model exists (already done)
+
+**Tasks:**
+
+1. **Create Pool License Endpoint**
+   - Add to `src/controllers/collectionController.js`:
+   - Create `licensePool` function:
+     - Get collection by ID
+     - Populate media and owners
+     - Calculate pool price
+     - Verify all pool members have Stripe Connect
+     - Process payment
+     - Calculate member shares
+     - Distribute revenue
+     - Create licenses for each media item
+     - Record transactions
+
+2. **Add Pool License Route**
+   - Add to `src/routes/collectionRoutes.js`:
+     - `POST /api/collections/:id/license`
+     - Middleware: `authenticate`
+     - Body: `{ licenseType, terms, paymentMethodId }`
+     - Controller: `licensePool`
+
+3. **Implement Pool Price Calculation**
+   - In `licensePool`:
+     - Check if collection has pricing for licenseType
+     - If yes, use collection pricing
+     - If no, sum all media pricing for licenseType
+     - Return pool price
+
+4. **Implement Member Share Calculation**
+   - In `licensePool`:
+     - Count media per creator
+     - Calculate total contribution count
+     - For each creator:
+       - Calculate contribution percent: `(creator media count / total) * 100`
+       - Calculate share: `creatorPoolShare * contributionPercent / 100`
+
+5. **Implement Revenue Distribution**
+   - In `licensePool`:
+     - Calculate fees: `stripeFee = (poolPrice * 0.029) + 0.30`
+     - Calculate net: `netAmount = poolPrice - stripeFee`
+     - Get pool creator's tier config
+     - Calculate platform share: `netAmount * tierConfig.revenueSplit.platform / 100`
+     - Calculate creator pool share: `netAmount - platformShare`
+     - For each member:
+       - Calculate member share
+       - Create Stripe transfer to member's Connect account
+       - Calculate chargeback reserve
+       - Update member balance
+       - Create transaction for member
+
+6. **Create Multiple Licenses**
+   - In `licensePool`:
+     - For each media in collection:
+       - Create license:
+         - mediaId: media._id
+         - licenseeId: buyer._id
+         - licensorId: media.ownerId._id
+         - licenseType: provided type
+         - status: `active`
+         - price: `poolPrice / media.length` (for display)
+         - metadata: { collectionId, poolLicense: true }
+     - Save all licenses
+     - Increment buyer's `activeLicenseCount`
+
+7. **Update Collection Earnings**
+   - In `licensePool`:
+     - Call `collection.updateEarnings(transaction)` for each member transaction
+     - Update `collection.totalRevenue`
+     - Update `collection.totalLicenses`
+
+8. **Create Pool Revenue Endpoint**
+   - Add to `src/controllers/collectionController.js`:
+   - Create `getPoolRevenue` function:
+     - Get all transactions for collection
+     - Calculate totals
+     - Breakdown by member
+     - Return revenue analytics
+
+9. **Add Pool Revenue Route**
+   - Add to `src/routes/collectionRoutes.js`:
+     - `GET /api/collections/:id/revenue`
+     - Middleware: `authenticate`
+     - Controller: `getPoolRevenue`
+
+10. **Create Tests**
+    - Create `tests/integration/poolLicensing.test.js`
+    - Test pool licensing flow
+    - Test revenue distribution
+    - Test member share calculation
+    - Test multiple license creation
+
+**Deliverables:**
+- [ ] Pool licensing endpoint
+- [ ] Automatic revenue distribution to pool members
+- [ ] Contribution-based splitting
+- [ ] Multiple licenses created (one per media item)
+- [ ] Pool revenue analytics
+- [ ] Tests written and passing
+
+**Files to Update:**
+```
+src/controllers/collectionController.js (UPDATE - add pool licensing)
+src/routes/collectionRoutes.js (UPDATE - add pool license route)
+src/models/Collection.js (UPDATE - add updateEarnings method)
+tests/integration/poolLicensing.test.js (NEW)
+```
+
+---
+
+#### Step 3D.2: Pool Member Earnings Tracking (Day 31-32)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Pool licensing workflow working (Step 3D.1)
+- Collection model exists (already done)
+
+**Tasks:**
+
+1. **Update Collection Model**
+   - Add to `src/models/Collection.js`:
+     ```javascript
+     totalRevenue: { type: Number, default: 0 },
+     totalLicenses: { type: Number, default: 0 },
+     memberEarnings: [{
+       businessId: { type: Schema.Types.ObjectId, ref: 'Business' },
+       totalEarned: { type: Number, default: 0 },
+       licenseCount: { type: Number, default: 0 },
+       contributionPercent: Number
+     }],
+     ```
+
+2. **Add Update Earnings Method**
+   - Add to `src/models/Collection.js`:
+     - `updateEarnings(transaction)` method:
+       - Update `totalRevenue += transaction.grossAmount`
+       - Update `totalLicenses++`
+       - Find or create memberEarnings entry
+       - Update `totalEarned` and `licenseCount`
+       - Save collection
+
+3. **Update Pool Licensing Flow**
+   - In `licensePool`:
+     - After creating member transactions:
+       - Call `collection.updateEarnings(transaction)` for each member
+       - Store `contributionPercent` in memberEarnings
+
+4. **Create Pool Earnings Endpoint**
+   - Add to `src/controllers/businessController.js`:
+   - Create `getPoolEarnings` function:
+     - Find collections where business is member
+     - Extract earnings from `memberEarnings` array
+     - Calculate total pool earnings
+     - Return breakdown per pool
+
+5. **Add Pool Earnings Route**
+   - Add to `src/routes/businessRoutes.js`:
+     - `GET /api/business/pool-earnings`
+     - Middleware: `authenticate`
+     - Controller: `getPoolEarnings`
+
+6. **Create Tests**
+   - Create `tests/integration/poolEarnings.test.js`
+   - Test earnings tracking
+   - Test member breakdown
+   - Test contribution percentages
+
+**Deliverables:**
+- [ ] Collection earnings tracking
+- [ ] Member earnings breakdown
+- [ ] Pool revenue analytics per creator
+- [ ] Pool earnings dashboard endpoint
+- [ ] Tests written and passing
+
+**Files to Update:**
+```
+src/models/Collection.js (UPDATE - add earnings tracking)
+src/controllers/businessController.js (UPDATE - add pool earnings)
+src/routes/businessRoutes.js (UPDATE - add pool earnings route)
+tests/integration/poolEarnings.test.js (NEW)
+```
+
+---
+
+## PHASE 3E: Production Polish (Week 7)
+
+### Week 7: Testing, Documentation & Launch Prep
+
+#### Step 3E.1: Integration Testing (Day 33-35)
+
+**Status:** ⚠️ Partially Complete (basic tests exist)
+
+**Prerequisites:**
+- All Phase 3A-3D implementations complete
+- Stripe test mode configured
+
+**Tasks:**
+
+1. **Create Payment Flow Tests**
+   - Create `tests/integration/payment-flow.test.js`
+   - Test subscription upgrade with payment
+   - Test license purchase with revenue split
+   - Test refund flow
+   - Test payout flow
+   - Test pool licensing flow
+
+2. **Create Revenue Split Tests**
+   - Create `tests/integration/revenue-split.test.js`
+   - Test Option C fee calculation
+   - Test revenue splits for all tiers
+   - Test chargeback reserve calculation
+   - Test pool revenue distribution
+
+3. **Create Webhook Tests**
+   - Create `tests/integration/webhook-simulation.test.js`
+   - Test webhook signature verification
+   - Test each webhook handler
+   - Test idempotency
+   - Test error handling
+
+4. **Create End-to-End Tests**
+   - Create `tests/integration/e2e-payment-flow.test.js`
+   - Test complete subscription flow
+   - Test complete license purchase flow
+   - Test complete refund flow
+   - Test complete payout flow
+
+5. **Update Test Setup**
+   - Update `tests/setup.js`:
+     - Mock Stripe API calls
+     - Set up test Stripe keys
+     - Configure test webhook secrets
+
+6. **Run All Tests**
+   - Run: `npm test`
+   - Fix any failing tests
+   - Aim for >80% coverage on payment flows
+
+**Deliverables:**
+- [ ] End-to-end payment tests
+- [ ] Refund flow tests
+- [ ] Pool revenue tests
+- [ ] Payout tests
+- [ ] Webhook simulation tests
+- [ ] All tests passing
+
+**Files to Create:**
+```
+tests/integration/payment-flow.test.js (NEW)
+tests/integration/revenue-split.test.js (NEW)
+tests/integration/webhook-simulation.test.js (NEW)
+tests/integration/e2e-payment-flow.test.js (NEW)
+tests/setup.js (UPDATE - add Stripe mocks)
+```
+
+---
+
+#### Step 3E.2: Error Handling & Edge Cases (Day 36-37)
+
+**Status:** ⚠️ Partially Complete (basic error handling exists)
+
+**Prerequisites:**
+- All payment flows implemented
+- Stripe error types understood
+
+**Tasks:**
+
+1. **Create Payment Error Handler**
+   - Create `src/utils/errorHandler.js`
+   - Create `PaymentError` class:
+     - Extends Error
+     - Has `code` and `statusCode` properties
+   - Create `handleStripeError(error)` function:
+     - Translate Stripe errors to user-friendly messages
+     - Return PaymentError with appropriate code
+
+2. **Create Global Error Middleware**
+   - Create `src/middlewares/errorMiddleware.js`
+   - Create `errorHandler(err, req, res, next)` function:
+     - Handle Stripe errors
+     - Handle PaymentError
+     - Handle default errors
+     - Return appropriate status codes and messages
+
+3. **Add Error Middleware to App**
+   - Update `src/app.js`:
+     - Import error middleware
+     - Add as last middleware: `app.use(errorHandler)`
+
+4. **Add Error Handling to Controllers**
+   - Update payment controllers:
+     - Wrap Stripe calls in try-catch
+     - Use `handleStripeError` for Stripe errors
+     - Return user-friendly error messages
+
+5. **Handle Edge Cases**
+   - Payment method declined
+   - Network errors
+   - Webhook failures
+   - Race conditions
+   - Negative balances
+   - Failed transfers
+   - Duplicate webhooks
+
+6. **Create Error Tests**
+   - Create `tests/integration/error-handling.test.js`
+   - Test Stripe error handling
+   - Test payment failures
+   - Test network errors
+   - Test edge cases
+
+**Deliverables:**
+- [ ] Comprehensive error handling
+- [ ] User-friendly error messages
+- [ ] Stripe error translation
+- [ ] Global error middleware
+- [ ] Edge case handling
+- [ ] Tests written and passing
+
+**Files to Create/Update:**
+```
+src/utils/errorHandler.js (NEW)
+src/middlewares/errorMiddleware.js (NEW)
+src/app.js (UPDATE - add error middleware)
+src/controllers/* (UPDATE - add error handling)
+tests/integration/error-handling.test.js (NEW)
+```
+
+---
+
+#### Step 3E.3: Documentation (Day 38-39)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- All implementations complete
+- API finalized
+
+**Tasks:**
+
+1. **Create API Documentation**
+   - Create `docs/API.md`
+   - Document all payment endpoints
+   - Include request/response examples
+   - Document error codes
+   - Document webhook events
+
+2. **Create Developer Guide**
+   - Create `docs/DEVELOPER_GUIDE.md`
+   - Document Stripe setup
+   - Document testing approach
+   - Document revenue calculation
+   - Document webhook setup
+
+3. **Create Testing Documentation**
+   - Create `docs/TESTING.md`
+   - Document test setup
+   - Document Stripe test cards
+   - Document webhook testing
+   - Document test coverage
+
+4. **Create Revenue Calculation Guide**
+   - Create `docs/REVENUE_CALCULATION.md`
+   - Document Option C fee splitting
+   - Provide calculation examples
+   - Document chargeback reserves
+   - Document pool revenue distribution
+
+5. **Update README**
+   - Update `README.md`:
+     - Add payment processing section
+     - Add Stripe setup instructions
+     - Add environment variables
+     - Add testing instructions
+
+**Deliverables:**
+- [ ] Complete API documentation
+- [ ] Developer integration guide
+- [ ] Testing documentation
+- [ ] Revenue calculation examples
+- [ ] Updated README
+
+**Files to Create:**
+```
+docs/API.md (NEW)
+docs/DEVELOPER_GUIDE.md (NEW)
+docs/TESTING.md (NEW)
+docs/REVENUE_CALCULATION.md (NEW)
+README.md (UPDATE - add payment section)
+```
+
+---
+
+## PHASE 4: Launch Preparation (Week 8)
+
+### Week 8: Beta Launch Readiness
+
+#### Step 4.1: Production Checklist (Day 40-42)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- All Phase 3 implementations complete
+- Testing complete
+
+**Tasks:**
+
+1. **Stripe Production Mode**
+   - Switch to production API keys
+   - Verify webhook endpoints in production
+   - Test with real payment methods (small amounts)
+   - Verify Connect transfers working
+
+2. **Database Optimization**
+   - Add indexes:
+     - Business: `stripeCustomerId`, `stripeConnectAccountId`, `membershipTier + subscriptionStatus`
+     - Transaction: `payer`, `payee`, `stripePaymentIntentId`, `type + status`, `metadata.collectionId`
+     - License: `licenseeId + status`, `licensorId + status`, `status + expiryDate`
+   - Verify query performance
+   - Test with production data volumes
+
+3. **Monitoring Setup**
+   - Set up Stripe webhook monitoring
+   - Configure error logging (Sentry/LogRocket)
+   - Set up transaction alerts
+   - Monitor failed payment rate
+
+4. **Security Audit**
+   - Verify webhook signature verification
+   - Check no API keys in code
+   - Verify rate limiting on payment endpoints
+   - Verify HTTPS enforced
+
+**Deliverables:**
+- [ ] Production Stripe configured
+- [ ] Database optimized
+- [ ] Monitoring active
+- [ ] Security verified
+
+---
+
+#### Step 4.2: Beta User Testing (Day 43-45)
+
+**Status:** ❌ Not Started
+
+**Prerequisites:**
+- Production environment ready
+- Beta users recruited
+
+**Tasks:**
+
+1. **Beta Testing Plan**
+   - Recruit 10-20 beta users
+   - Week 1: Creator onboarding (10 creators)
+   - Week 2: Licensing flow (5 license purchases)
+   - Week 3: Pool testing (2 pools, 1 pool license)
+   - Week 4: Payout testing (2 payout requests)
+
+2. **Feedback Collection**
+   - Create feedback endpoint:
+     - `POST /api/feedback`
+     - Body: `{ category, message, rating }`
+   - Collect feedback after each test phase
+   - Analyze feedback
+   - Fix critical bugs
+
+3. **Success Metrics**
+   - 0 failed payments (or < 1%)
+   - 0 incorrect revenue splits
+   - < 24 hour payout initiation
+   - 100% positive feedback on payment flow
+
+**Deliverables:**
+- [ ] 10-20 beta users onboarded
+- [ ] All payment flows tested with real money
+- [ ] Feedback collected and analyzed
+- [ ] Critical bugs fixed
+
+---
+
+## 📊 Implementation Checklist
+
+### Phase 3A: Payment Processing Foundation
+- [ ] Stripe account configured
+- [ ] Transaction model created
+- [ ] Stripe Connect integrated
+- [ ] Subscription payments working
+- [ ] Webhooks handling
+
+### Phase 3B: License Payment Flow
+- [ ] License payments working
+- [ ] Revenue splits executed
+- [ ] Refunds working
+- [ ] Payouts working
+- [ ] Chargeback protection
+
+### Phase 3C: Dashboard & Analytics
+- [ ] Creator financial dashboard
+- [ ] Platform analytics
+- [ ] Transaction history
+- [ ] Revenue trends
+
+### Phase 3D: Pool Revenue Sharing
+- [ ] Pool licensing working
+- [ ] Revenue distribution working
+- [ ] Member earnings tracked
+
+### Phase 3E: Production Polish
+- [ ] Integration tests passing
+- [ ] Error handling comprehensive
+- [ ] Documentation complete
+
+### Phase 4: Launch Preparation
+- [ ] Production environment ready
+- [ ] Beta users testing
+- [ ] Launch criteria met
+
+---
+
+## 🎯 Success Criteria
+
+**Ready for Beta Launch when:**
+1. ✅ All Phase 3A-3E complete
+2. ✅ Integration tests passing
+3. ✅ Beta users successfully transacting
+4. ✅ Revenue splits verified accurate
+5. ✅ Refunds and payouts working
+6. ✅ Error handling comprehensive
+7. ✅ Documentation complete
+8. ✅ Security audit passed
+
+---
+
+**Last Updated:** Current  
+**Next Review:** After Week 1 completion
 
 ### Current State
 ```javascript
@@ -313,782 +2043,30 @@ Business {
 
 ---
 
-## 2. Media Model → Add Licensing Fields
+## 📋 Summary
 
-### Current State
-```javascript
-Media {
-  filename, originalName, mimetype, category
-  size, url, cloudinaryId
-  thumbnailUrl, metadata
-  ownerId (reference to User)
-}
-```
+### Implementation Status
 
-### Target State
-```javascript
-Media {
-  // Basic (keep existing)
-  filename, originalName, mimetype, category
-  size, url, cloudinaryId, thumbnailUrl, metadata
-  ownerId (reference to Business)
-  
-  // Licensing
-  title, description, tags, category
-  ownershipModel: 'individual' | 'pooled'
-  isLicensable: Boolean
-  licenseTypes: ['commercial', 'editorial', 'exclusive']
-  pricing: {
-    basePrice: Number
-    currency: String
-    licenseType: String
-  }
-  usageRestrictions: {
-    geographic: [String]
-    duration: String
-    modification: Boolean
-  }
-  copyrightInformation: String
-  
-  // Licensing Status
-  licenseCount: Number
-  activeLicenses: [License IDs]
-  
-  // Watermarking
-  watermarkedPreviewUrl: String
-  
-  // Pool Membership
-  poolId: ObjectId (if part of collection)
-}
-```
+**Already Implemented (Do Not Modify):**
+- ✅ Phase 1: Business Model (85% complete)
+- ✅ Phase 2: Media Licensing (90% complete)
+- ✅ Phase 4: Collections/Pools structure (70% complete)
 
-### Step-by-Step Plan
+**New Implementation Required:**
+- 🆕 Phase 3A: Payment Processing Foundation (Weeks 1-2)
+- 🆕 Phase 3B: License Payment Flow (Weeks 3-4)
+- 🆕 Phase 3C: Dashboard & Analytics (Week 5)
+- 🆕 Phase 3D: Pool Revenue Sharing (Week 6)
+- 🆕 Phase 3E: Production Polish (Week 7)
+- 🆕 Phase 4: Launch Preparation (Week 8)
 
-#### Step 2.1: Add Licensing Fields to Media Schema
-1. Open `src/models/Media.js`
-2. Add basic licensing fields:
-   - `title: { type: String, required: false }`
-   - `description: { type: String, required: false }`
-   - `tags: [{ type: String }]`
-   - `isLicensable: { type: Boolean, default: false }`
-   - `ownershipModel: { type: String, enum: ['individual', 'pooled'], default: 'individual' }`
-3. Add license types:
-   - `licenseTypes: [{ type: String, enum: ['commercial', 'editorial', 'exclusive'] }]`
-4. Add pricing structure:
-   - `pricing: {`
-     - `basePrice: { type: Number, default: 0 }`
-     - `currency: { type: String, default: 'USD' }`
-     - `licenseType: { type: String }`
-   - `}`
-5. Add usage restrictions:
-   - `usageRestrictions: {`
-     - `geographic: [{ type: String }]` (e.g., ['US', 'CA'])
-     - `duration: { type: String }` (e.g., '1 year', 'perpetual')
-     - `modification: { type: Boolean, default: false }`
-   - `}`
-6. Add copyright information:
-   - `copyrightInformation: { type: String }`
-7. Add licensing status:
-   - `licenseCount: { type: Number, default: 0 }`
-   - `activeLicenses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'License' }]`
-8. Add watermarking:
-   - `watermarkedPreviewUrl: { type: String }`
-9. Add pool membership:
-   - `poolId: { type: mongoose.Schema.Types.ObjectId, ref: 'Collection', required: false }`
-10. Update ownerId reference:
-    - Change from `ref: 'User'` to `ref: 'Business'`
-11. Add indexes:
-    - Index on `isLicensable`
-    - Index on `ownershipModel`
-    - Index on `poolId`
-    - Text index on `title`, `description`, `tags`
-12. Add pre-save hook to increment Business uploadCount (Refined Model):
-    - `mediaSchema.pre('save', async function(next) {
-        if (this.isNew && this.ownerId) {
-          const Business = require('./Business');
-          const business = await Business.findById(this.ownerId);
-          if (business) {
-            // Check upload limit for free tier
-            if (business.membershipTier === 'free') {
-              if (business.uploadCount >= 25) { // or 50, configurable
-                return next(new Error('Upload limit reached. Upgrade to Contributor for unlimited uploads.'));
-              }
-            }
-            business.uploadCount += 1;
-            await business.save();
-          }
-        }
-        next();
-      });`
-
-#### Step 2.2: Add Media Methods
-1. Add method to check if licensable:
-   - `mediaSchema.methods.isLicensable = function() { ... }`
-2. Add method to get pricing for license type:
-   - `mediaSchema.methods.getPriceForLicenseType = function(licenseType) { ... }`
-3. Add method to check usage restrictions:
-   - `mediaSchema.methods.checkUsageRestrictions = function(usage) { ... }`
-4. Add method to generate watermarked preview:
-   - `mediaSchema.methods.generateWatermarkedPreview = async function() { ... }`
-
-#### Step 2.3: Update Media Controller
-1. Update `uploadFile` function:
-   - Add default licensing fields on upload
-   - Set `isLicensable: false` by default
-   - Set `ownershipModel: 'individual'` by default
-   - Check upload limit before upload (Refined Model)
-   - Show upgrade prompt if limit reached
-2. Add new functions:
-   - `updateMediaLicensing` - Update licensing info
-   - `setMediaPricing` - Set pricing
-   - `setMediaLicenseTypes` - Set available license types
-   - `setMediaUsageRestrictions` - Set usage restrictions
-   - `makeMediaLicensable` - Enable licensing
-   - `addMediaToPool` - Add to collection/pool
-   - `removeMediaFromPool` - Remove from pool
-
-#### Step 2.4: Update Media Routes
-1. Add new routes:
-   - `PUT /api/media/:id/licensing` - Update licensing info
-   - `PUT /api/media/:id/pricing` - Update pricing
-   - `PUT /api/media/:id/license-types` - Update license types
-   - `PUT /api/media/:id/usage-restrictions` - Update usage restrictions
-   - `PUT /api/media/:id/make-licensable` - Enable licensing
-   - `PUT /api/media/:id/pool` - Add to pool
-   - `DELETE /api/media/:id/pool` - Remove from pool
-   - `GET /api/media/licensable` - List licensable media
-   - `GET /api/media/:id/licensing-info` - Get licensing details
-2. Update upload route:
-   - Add limit checking middleware (Refined Model)
-   - Show upgrade prompt if limit reached
-
-#### Step 2.5: Data Migration
-1. Create migration script:
-   - `scripts/add-licensing-fields-to-media.js`
-2. Script should:
-   - Set default values for all new fields
-   - Set `isLicensable: false` for existing media
-   - Set `ownershipModel: 'individual'` for existing media
-   - Initialize arrays to empty
-   - Set default pricing structure
-   - Update ownerId references from User to Business
-
-#### Step 2.6: Testing
-1. Test schema changes:
-   - Create media with licensing fields
-   - Update licensing fields
-   - Test validation
-   - Test upload limit enforcement (Refined Model)
-2. Test new endpoints:
-   - Update licensing info
-   - Set pricing
-   - Enable/disable licensing
-   - Test upload limit checking
-3. Test queries:
-   - Query licensable media
-   - Filter by license types
-   - Search by tags
+**Total Timeline:** 8 weeks to Beta launch
 
 ---
 
-## 3. Auth Middleware → Add Tier Checks + Limit Enforcement
+## 📝 Notes
 
-### Current State
-```javascript
-auth.js {
-  authenticate() - Verifies JWT token
-  optionalAuth() - Optional authentication
-}
-```
-
-### Target State
-```javascript
-auth.js {
-  authenticate() - Verifies JWT token
-  optionalAuth() - Optional authentication
-  requireMembershipTier() - Check membership tier
-  requirePartnerTier() - Require Partner tier or higher (for API access, pool creation)
-  requireContributorTier() - Require Contributor tier or higher (for analytics, priority support)
-  requireVerifiedBusiness() - Check business verification
-  requireActiveSubscription() - Check subscription status
-  checkUploadLimit() - Check upload limit (Refined Model)
-  checkDownloadLimit() - Check download limit (Refined Model)
-  checkActiveLicenseLimit() - Check active license limit (Refined Model)
-  calculateVotingPower() - Calculate voting power
-}
-```
-
-### Step-by-Step Plan
-
-#### Step 3.1: Add Tier Check Middleware
-1. Open `src/middlewares/auth.js`
-2. Add `requireMembershipTier` middleware:
-   ```javascript
-   const requireMembershipTier = (allowedTiers) => {
-     return async (req, res, next) => {
-       // Check if user is authenticated
-       if (!req.business) {
-         return res.status(401).json({ error: 'Authentication required' });
-       }
-       // Get business from req.business
-       // Check if business.membershipTier is in allowedTiers
-       if (!allowedTiers.includes(req.business.membershipTier)) {
-         return res.status(403).json({ 
-           error: 'Insufficient membership tier',
-           requiredTier: allowedTiers,
-           currentTier: req.business.membershipTier,
-           upgradeUrl: '/api/subscriptions/upgrade'
-         });
-       }
-       // If yes, continue
-       next();
-     }
-   }
-   ```
-3. Add `requirePartnerTier` middleware (Refined Model):
-   ```javascript
-   const requirePartnerTier = requireMembershipTier(['partner', 'equityPartner']);
-   ```
-4. Add `requireContributorTier` middleware (Refined Model):
-   ```javascript
-   const requireContributorTier = requireMembershipTier(['contributor', 'partner', 'equityPartner']);
-   ```
-5. Add `requireVerifiedBusiness` middleware:
-   ```javascript
-   const requireVerifiedBusiness = async (req, res, next) => {
-     if (!req.business) {
-       return res.status(401).json({ error: 'Authentication required' });
-     }
-     if (!req.business.isVerified) {
-       return res.status(403).json({ error: 'Business verification required' });
-     }
-     next();
-   }
-   ```
-6. Add `requireActiveSubscription` middleware:
-   ```javascript
-   const requireActiveSubscription = async (req, res, next) => {
-     if (!req.business) {
-       return res.status(401).json({ error: 'Authentication required' });
-     }
-     if (req.business.membershipTier === 'free') {
-       return next(); // Free tier doesn't need subscription
-     }
-     if (req.business.subscriptionStatus !== 'active') {
-       return res.status(403).json({ error: 'Active subscription required' });
-     }
-     if (req.business.subscriptionExpiry && new Date() > req.business.subscriptionExpiry) {
-       return res.status(403).json({ error: 'Subscription expired' });
-     }
-     next();
-   }
-   ```
-
-#### Step 3.2: Add Limit Enforcement Middleware (Refined Model)
-1. Add `checkUploadLimit` middleware:
-   ```javascript
-   const checkUploadLimit = async (req, res, next) => {
-     if (!req.business) {
-       return res.status(401).json({ error: 'Authentication required' });
-     }
-     const canUpload = await req.business.canUpload();
-     if (!canUpload) {
-       return res.status(403).json({
-         error: 'Upload limit reached',
-         currentUploads: req.business.uploadCount,
-         uploadLimit: 25, // or 50, from tier config
-         upgradeUrl: '/api/subscriptions/upgrade',
-         message: 'Upgrade to Contributor for unlimited uploads'
-       });
-     }
-     next();
-   }
-   ```
-2. Add `checkDownloadLimit` middleware:
-   ```javascript
-   const checkDownloadLimit = async (req, res, next) => {
-     if (!req.business) {
-       return res.status(401).json({ error: 'Authentication required' });
-     }
-     // Reset download count if needed (monthly)
-     await req.business.canDownload(); // This resets if needed
-     const canDownload = await req.business.canDownload();
-     if (!canDownload) {
-       return res.status(403).json({
-         error: 'Download limit reached',
-         currentDownloads: req.business.downloadCount,
-         downloadLimit: 50,
-         resetDate: req.business.lastDownloadReset,
-         upgradeUrl: '/api/subscriptions/upgrade',
-         message: 'Upgrade to Contributor for unlimited downloads'
-       });
-     }
-     next();
-   }
-   ```
-3. Add `checkActiveLicenseLimit` middleware:
-   ```javascript
-   const checkActiveLicenseLimit = async (req, res, next) => {
-     if (!req.business) {
-       return res.status(401).json({ error: 'Authentication required' });
-     }
-     const canCreate = await req.business.canCreateActiveLicense();
-     if (!canCreate) {
-       return res.status(403).json({
-         error: 'Active license limit reached',
-         currentActiveLicenses: req.business.activeLicenseCount,
-         activeLicenseLimit: 3,
-         upgradeUrl: '/api/subscriptions/upgrade',
-         message: 'Upgrade to Contributor for unlimited active licenses'
-       });
-     }
-     next();
-   }
-   ```
-
-#### Step 3.3: Add Helper Functions
-1. Add `calculateVotingPower` function:
-   ```javascript
-   const calculateVotingPower = (business) => {
-     const tierVotes = {
-       free: 1,
-       contributor: 2,
-       partner: 3,
-       equityPartner: 5
-     };
-     return tierVotes[business.membershipTier] || 0;
-   }
-   ```
-2. Add `getRevenueSplit` function (Refined Model):
-   ```javascript
-   const getRevenueSplit = (business) => {
-     const splits = {
-       free: { creator: 80, platform: 20 },
-       contributor: { creator: 85, platform: 15 },
-       partner: { creator: 90, platform: 10 },
-       equityPartner: { creator: 95, platform: 5 }
-     };
-     return splits[business.membershipTier] || splits.free;
-   }
-   ```
-3. Add `checkTierAccess` function:
-   ```javascript
-   const checkTierAccess = (business, requiredTier) => {
-     const tierHierarchy = {
-       free: 0,
-       contributor: 1,
-       partner: 2,
-       equityPartner: 3
-     };
-     return tierHierarchy[business.membershipTier] >= tierHierarchy[requiredTier];
-   }
-   ```
-
-#### Step 3.4: Update Existing Middleware
-1. Update `authenticate` middleware:
-   - After verifying token, populate Business
-   - Attach Business to `req.business` (in addition to `req.user`)
-   - Include membership tier in response
-   - Include resource limits in response (Refined Model)
-2. Add tier information to request:
-   - `req.business.membershipTier`
-   - `req.business.subscriptionStatus`
-   - `req.business.votingPower`
-   - `req.business.uploadCount` (Refined Model)
-   - `req.business.downloadCount` (Refined Model)
-   - `req.business.activeLicenseCount` (Refined Model)
-
-#### Step 3.5: Create Tier-Specific Middleware
-1. Create `requireFreeTier`:
-   - `requireMembershipTier(['free', 'contributor', 'partner', 'equityPartner'])`
-2. Create `requireContributorTier`:
-   - `requireMembershipTier(['contributor', 'partner', 'equityPartner'])`
-3. Create `requirePartnerTier`:
-   - `requireMembershipTier(['partner', 'equityPartner'])`
-4. Create `requireEquityPartnerTier`:
-   - `requireMembershipTier(['equityPartner'])`
-
-#### Step 3.6: Update Error Messages (Refined Model)
-1. Add tier-specific error messages:
-   - "This feature requires Contributor membership ($15/month)"
-   - "This feature requires Partner membership ($50/month)"
-   - "Your subscription has expired"
-   - "Please verify your business account"
-   - "Upload limit reached. Upgrade to Contributor for unlimited uploads."
-   - "Download limit reached (50/month). Upgrade to Contributor for unlimited downloads."
-   - "Active license limit reached (3 active). Upgrade to Contributor for unlimited active licenses."
-
-#### Step 3.7: Testing
-1. Test tier checks:
-   - Free tier accessing contributor features
-   - Contributor accessing partner features
-   - Expired subscription access
-2. Test limit enforcement (Refined Model):
-   - Upload limit enforcement
-   - Download limit enforcement
-   - Active license limit enforcement
-   - Monthly download reset
-3. Test middleware combinations:
-   - `authenticate` + `requireContributorTier`
-   - `authenticate` + `requireActiveSubscription`
-   - `authenticate` + `checkUploadLimit`
-   - `authenticate` + `checkDownloadLimit`
-   - `authenticate` + `checkActiveLicenseLimit`
-4. Test error responses:
-   - Verify correct error messages
-   - Verify correct status codes (403)
-   - Verify upgrade prompts
-
----
-
-## 4. Routes → Add Licensing Routes + Limit Enforcement
-
-### Current State
-```javascript
-Routes {
-  /api/auth/* - Authentication
-  /api/media/* - Media CRUD
-}
-```
-
-### Target State
-```javascript
-Routes {
-  /api/auth/* - Authentication
-  /api/business/* - Business management (with limits)
-  /api/media/* - Media CRUD + Licensing (with upload limits)
-  /api/licenses/* - License management (with download/active license limits)
-  /api/subscriptions/* - Subscription management (NEW)
-  /api/collections/* - Collections/Pools (Partner tier only)
-  /api/proposals/* - Governance
-  /api/transactions/* - Financial
-}
-```
-
-### Step-by-Step Plan
-
-#### Step 4.1: Create License Routes File
-1. Create `src/routes/licenseRoutes.js`
-2. Import dependencies:
-   - Express Router
-   - License controller
-   - Auth middleware
-   - Tier check middleware
-   - Limit enforcement middleware (Refined Model)
-3. Define routes structure:
-   - License creation (with download limit check)
-   - License management
-   - License approval (with active license limit check)
-   - License listing
-
-#### Step 4.2: License Creation Routes (Refined Model)
-1. `POST /api/licenses` - Create license request
-   - Middleware: `authenticate`, `requireVerifiedBusiness`, `checkDownloadLimit`
-   - Body: `{ mediaId, licenseType, terms, price }`
-   - Controller: `createLicenseRequest`
-   - Increment download count on success
-2. `GET /api/licenses/pending` - Get pending licenses (as licensor)
-   - Middleware: `authenticate`
-   - Controller: `getPendingLicenses`
-3. `GET /api/licenses/requests` - Get license requests (as licensee)
-   - Middleware: `authenticate`
-   - Controller: `getLicenseRequests`
-
-#### Step 4.3: License Management Routes (Refined Model)
-1. `GET /api/licenses` - List all licenses
-   - Middleware: `authenticate`
-   - Query params: `status`, `type`, `asLicensor`, `asLicensee`
-   - Controller: `listLicenses`
-2. `GET /api/licenses/:id` - Get license details
-   - Middleware: `authenticate`
-   - Controller: `getLicenseById`
-3. `PUT /api/licenses/:id/approve` - Approve license
-   - Middleware: `authenticate`, `requireVerifiedBusiness`, `checkActiveLicenseLimit`
-   - Controller: `approveLicense`
-   - Increment active license count on success
-4. `PUT /api/licenses/:id/reject` - Reject license
-   - Middleware: `authenticate`, `requireVerifiedBusiness`
-   - Body: `{ reason }`
-   - Controller: `rejectLicense`
-5. `PUT /api/licenses/:id/cancel` - Cancel license
-   - Middleware: `authenticate`
-   - Controller: `cancelLicense`
-   - Decrement active license count on success
-6. `GET /api/media/:id/download` - Download licensed media
-   - Middleware: `authenticate`, `checkDownloadLimit`
-   - Controller: `downloadLicensedMedia`
-   - Increment download count on success
-
-#### Step 4.4: License Status Routes
-1. `GET /api/licenses/active` - Get active licenses
-   - Middleware: `authenticate`
-   - Controller: `getActiveLicenses`
-2. `GET /api/licenses/expired` - Get expired licenses
-   - Middleware: `authenticate`
-   - Controller: `getExpiredLicenses`
-   - Decrement active license count on expiry
-3. `PUT /api/licenses/:id/renew` - Renew license
-   - Middleware: `authenticate`, `checkActiveLicenseLimit`
-   - Body: `{ duration }`
-   - Controller: `renewLicense`
-
-#### Step 4.5: Media Licensing Routes (Refined Model)
-1. `GET /api/media/:id/licenses` - Get licenses for media
-   - Middleware: `authenticate`
-   - Controller: `getMediaLicenses`
-2. `GET /api/media/licensable` - List licensable media
-   - Middleware: `authenticate` (optional)
-   - Query params: `category`, `licenseType`, `priceRange`
-   - Controller: `listLicensableMedia`
-3. `GET /api/media/:id/licensing-info` - Get licensing details
-   - Middleware: `authenticate` (optional)
-   - Controller: `getMediaLicensingInfo`
-4. `POST /api/media` - Upload media (Refined Model)
-   - Middleware: `authenticate`, `checkUploadLimit`
-   - Controller: `uploadFile`
-   - Show upgrade prompt if limit reached
-
-#### Step 4.6: Business Licensing Routes (Refined Model)
-1. `GET /api/business/licenses` - Get business licenses
-   - Middleware: `authenticate`
-   - Query params: `asLicensor`, `asLicensee`, `status`
-   - Controller: `getBusinessLicenses`
-2. `GET /api/business/licenses/stats` - Get license statistics
-   - Middleware: `authenticate`
-   - Controller: `getLicenseStats`
-3. `GET /api/business/limits` - Get current limit usage (NEW - Refined Model)
-   - Middleware: `authenticate`
-   - Controller: `getBusinessLimits`
-   - Response: `{ uploadCount, uploadLimit, downloadCount, downloadLimit, activeLicenseCount, activeLicenseLimit, tier }`
-4. `GET /api/business/tier` - Get tier information and upgrade options (NEW - Refined Model)
-   - Middleware: `authenticate`
-   - Controller: `getTierInfo`
-   - Response: `{ currentTier, limits, features, upgradeOptions }`
-
-#### Step 4.7: Subscription Management Routes (NEW - Refined Model)
-1. `POST /api/subscriptions/upgrade` - Upgrade tier
-   - Middleware: `authenticate`
-   - Body: `{ tier: 'contributor' | 'partner' | 'equityPartner' }`
-   - Controller: `upgradeSubscription`
-   - Process payment
-   - Update membership tier
-   - Reset limits (unlimited for paid tiers)
-2. `POST /api/subscriptions/downgrade` - Downgrade tier
-   - Middleware: `authenticate`
-   - Body: `{ tier: 'free' }`
-   - Controller: `downgradeSubscription`
-   - Cancel subscription
-   - Update membership tier
-   - Apply limits (25-50 uploads, 50 downloads/month, 3 active licenses)
-3. `GET /api/subscriptions/status` - Get subscription status
-   - Middleware: `authenticate`
-   - Controller: `getSubscriptionStatus`
-4. `POST /api/subscriptions/cancel` - Cancel subscription
-   - Middleware: `authenticate`
-   - Controller: `cancelSubscription`
-   - Downgrade to free tier
-   - Apply limits
-
-#### Step 4.8: Collections/Pools Routes (Partner Tier Only - Refined Model)
-1. `POST /api/collections` - Create collection
-   - Middleware: `authenticate`, `requirePartnerTier`
-   - Controller: `createCollection`
-   - Show upgrade prompt if not Partner tier
-2. `PUT /api/collections/:id` - Update collection
-   - Middleware: `authenticate`, `requirePartnerTier`
-   - Controller: `updateCollection`
-3. `GET /api/collections` - List collections
-   - Middleware: `authenticate` (optional)
-   - Controller: `listCollections`
-4. `GET /api/collections/:id` - Get collection details
-   - Middleware: `authenticate` (optional)
-   - Controller: `getCollectionDetails`
-
-#### Step 4.9: Update App Routes
-1. Open `src/app.js`
-2. Import license routes:
-   - `const licenseRoutes = require('./routes/licenseRoutes')`
-3. Import subscription routes (Refined Model):
-   - `const subscriptionRoutes = require('./routes/subscriptionRoutes')`
-4. Add license routes:
-   - `app.use('/api/licenses', authenticate, licenseRoutes)`
-5. Add subscription routes (Refined Model):
-   - `app.use('/api/subscriptions', authenticate, subscriptionRoutes)`
-6. Update media routes:
-   - Add upload limit middleware (Refined Model)
-   - Add new licensing endpoints
-
-#### Step 4.10: Route Protection (Refined Model)
-1. Public routes (no auth):
-   - `GET /api/media/licensable` - Browse licensable media
-   - `GET /api/media/:id/licensing-info` - View licensing info
-2. Authenticated routes:
-   - All license creation and management
-   - Business license listings
-   - Limit information
-3. Tier-protected routes:
-   - `POST /api/licenses` - Require verified business + download limit check
-   - `PUT /api/licenses/:id/approve` - Require verified business + active license limit check
-   - `POST /api/collections` - Require Partner tier
-   - `POST /api/media` - Require upload limit check
-   - Advanced features - Require contributor/partner tier
-
-#### Step 4.11: Validation (Refined Model)
-1. Add validation for license creation:
-   - Media ID exists and is licensable
-   - License type is valid
-   - Terms are valid
-   - Price is valid
-   - Download limit not reached
-2. Add validation for license approval:
-   - User owns the media
-   - License is in pending status
-   - Active license limit not reached
-3. Add validation for media upload:
-   - Upload limit not reached
-   - File type is valid
-   - File size is valid
-4. Add validation for subscription upgrade:
-   - Valid tier selected
-   - Payment method valid
-   - Payment processed
-
-#### Step 4.12: Testing (Refined Model)
-1. Test route creation:
-   - Create license request (with download limit check)
-   - Approve license (with active license limit check)
-   - Reject license
-   - Upload media (with upload limit check)
-2. Test route protection:
-   - Unauthenticated access
-   - Wrong tier access
-   - Unverified business access
-   - Limit reached access
-3. Test limit enforcement:
-   - Upload limit enforcement
-   - Download limit enforcement
-   - Active license limit enforcement
-   - Monthly download reset
-4. Test subscription routes:
-   - Upgrade tier
-   - Downgrade tier
-   - Get subscription status
-   - Cancel subscription
-5. Test route queries:
-   - List licenses with filters
-   - Get license details
-   - Get business licenses
-   - Get limit usage
-
----
-
-## Implementation Order
-
-### Recommended Sequence
-
-1. **Phase 1: User → Business Model + Resource Limits**
-   - Do this first (foundation for everything else)
-   - Create Business model with resource limits
-   - Create tier configuration
-   - Migrate existing data
-   - Test thoroughly
-
-2. **Phase 2: Media Licensing Fields + Upload Limits**
-   - Add fields to Media model
-   - Add upload limit enforcement
-   - Update controllers
-   - Add new routes
-
-3. **Phase 3: Auth Middleware Tier Checks + Limit Enforcement**
-   - Add tier checks
-   - Add limit enforcement middleware
-   - Update existing routes
-   - Test access control
-
-4. **Phase 4: Licensing Routes + Download/Active License Limits**
-   - Create License model first (separate task)
-   - Then create routes
-   - Add download limit enforcement
-   - Add active license limit enforcement
-   - Integrate with existing routes
-
-### Dependencies
-
-- **Business Model** must be done before:
-  - Media model updates (needs Business reference + upload limits)
-  - Auth middleware (needs Business model + limit checking)
-  - Licensing routes (needs Business model + limit enforcement)
-
-- **Media Licensing Fields** must be done before:
-  - Licensing routes (needs licensing fields)
-
-- **Auth Middleware** can be done in parallel with:
-  - Media model updates
-  - But needed before licensing routes
-
-- **Licensing Routes** depends on:
-  - Business model (with resource limits)
-  - Media licensing fields
-  - Auth middleware (with limit enforcement)
-  - License model (separate task)
-
----
-
-## Testing Checklist
-
-### Business Model (Refined Model)
-- [ ] Migration script runs successfully
-- [ ] All users migrated to businesses
-- [ ] Resource limits initialized (uploadCount, downloadCount, activeLicenseCount)
-- [ ] Business profile can be updated
-- [ ] Membership tier can be changed
-- [ ] Revenue balance updates correctly
-- [ ] Voting power calculates correctly
-- [ ] Upload limit checking works
-- [ ] Download limit checking works (with monthly reset)
-- [ ] Active license limit checking works
-
-### Media Licensing Fields (Refined Model)
-- [ ] Licensing fields can be added
-- [ ] Pricing can be set
-- [ ] License types can be configured
-- [ ] Usage restrictions can be set
-- [ ] Media can be made licensable
-- [ ] Media can be added to pools
-- [ ] Upload limit enforced on media creation
-- [ ] Business uploadCount increments on media creation
-
-### Auth Middleware (Refined Model)
-- [ ] Tier checks work correctly
-- [ ] Free tier blocked from contributor features
-- [ ] Contributor tier blocked from partner features
-- [ ] Expired subscriptions blocked
-- [ ] Unverified businesses blocked
-- [ ] Upload limit middleware works
-- [ ] Download limit middleware works (with monthly reset)
-- [ ] Active license limit middleware works
-- [ ] Error messages are clear
-- [ ] Upgrade prompts displayed
-
-### Licensing Routes (Refined Model)
-- [ ] License can be created (with download limit check)
-- [ ] License can be approved (with active license limit check)
-- [ ] License can be rejected
-- [ ] Licenses can be listed
-- [ ] License details can be retrieved
-- [ ] Route protection works
-- [ ] Limit enforcement works
-- [ ] Download count increments on license creation
-- [ ] Active license count increments on approval
-- [ ] Monthly download reset works
-- [ ] Subscription routes work
-- [ ] Limit information endpoint works
-
----
-
-## Notes
-
-- All changes should be backward compatible initially
+- All changes should be backward compatible
 - Migration scripts should be tested on copy of production data
 - Rollback procedures should be documented
 - API versioning may be needed for breaking changes
@@ -1097,6 +2075,7 @@ Routes {
 - **Monthly download reset** must be implemented correctly
 - **Upgrade prompts** should be clear and actionable
 - **Tier configuration** should be easily configurable
+- **Payment processing** is critical path - prioritize Phase 3A-3B
 
 ---
 
