@@ -9,6 +9,7 @@ const router = express.Router();
 //   getRevenueSplit,
 //   getFinancialStats
 // } = require('../controllers/transactionController');
+const { processRefund } = require('../controllers/transactionController');
 
 // All routes require authentication (applied in app.js)
 
@@ -29,6 +30,18 @@ const router = express.Router();
 
 // GET /api/transactions/stats - Get financial statistics
 // router.get('/stats', getFinancialStats);
+
+// ============================================
+// Transaction Refund Routes
+// ============================================
+
+/**
+ * POST /api/transactions/:id/refund
+ * Process refund for a transaction
+ * Middleware: authenticate (app.js)
+ * Body: { reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer' }
+ */
+router.post('/:id/refund', processRefund);
 
 module.exports = router;
 

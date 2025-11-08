@@ -1,158 +1,108 @@
 const Business = require('../models/Business');
+const Transaction = require('../models/Transaction');
 const { getTierConfig, getTierLimit, TIER_CONFIG } = require('../config/tiers');
+const StripeService = require('../services/stripeService');
+const { calculateStripeFee } = require('../utils/revenueCalculation');
 
 /**
  * Upgrade subscription tier
  * POST /api/subscriptions/upgrade
  * Middleware: authenticate
- * Body: { tier: 'contributor' | 'partner' | 'equityPartner' }
+ * Body: { tier: 'contributor' | 'partner' | 'equityPartner', paymentMethodId: string }
  * Process payment, update membership tier, reset limits (unlimited for paid tiers)
  */
 const upgradeSubscription = async (req, res, next) => {
   try {
-    const { tier } = req.body;
-    const business = req.business;
-
+    const businessId = req.business._id; // From authenticate middleware
+    const { tier, paymentMethodId } = req.body;
+    
     // Validate tier
     const validTiers = ['contributor', 'partner', 'equityPartner'];
-    if (!tier || !validTiers.includes(tier)) {
+    if (!validTiers.includes(tier)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid tier',
-        message: `Tier must be one of: ${validTiers.join(', ')}`,
-        validTiers: validTiers
+        error: 'invalid_tier',
+        message: 'Invalid tier specified'
       });
     }
-
-    // Check if already at or above this tier
-    const tierHierarchy = {
-      free: 0,
-      contributor: 1,
-      partner: 2,
-      equityPartner: 3
-    };
-
-    const currentTierLevel = tierHierarchy[business.membershipTier] || 0;
-    const newTierLevel = tierHierarchy[tier];
-
-    if (currentTierLevel >= newTierLevel) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid upgrade',
-        message: `You are already at or above the ${tier} tier`,
-        currentTier: business.membershipTier,
-        requestedTier: tier
-      });
-    }
-
-    // Get tier configuration
-    const tierConfig = getTierConfig(tier);
-
-    // Validate payment method
-    const { paymentMethod } = req.body;
-    const validPaymentMethods = ['stripe', 'paypal', 'credit_card', 'bank_transfer'];
     
-    if (!paymentMethod) {
-      return res.status(400).json({
+    // Get price ID from .env
+    let priceIdKey;
+    if (tier === 'equityPartner') {
+      priceIdKey = 'STRIPE_PRICE_EQUITY_PARTNER';
+    } else {
+      priceIdKey = `STRIPE_PRICE_${tier.toUpperCase()}`;
+    }
+    const priceId = process.env[priceIdKey];
+    if (!priceId) {
+      return res.status(500).json({
         success: false,
-        error: 'Payment method required',
-        message: 'Payment method is required for subscription upgrade',
-        validMethods: validPaymentMethods
+        error: 'price_not_configured',
+        message: 'Subscription price not configured'
       });
     }
-
-    if (!validPaymentMethods.includes(paymentMethod)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid payment method',
-        message: `Payment method must be one of: ${validPaymentMethods.join(', ')}`,
-        validMethods: validPaymentMethods,
-        providedMethod: paymentMethod
-      });
+    
+    const business = await Business.findById(businessId);
+    const stripeService = new StripeService();
+    
+    // Create or get customer
+    let customerId = business.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripeService.createCustomer(businessId, business.email);
+      customerId = customer.id;
+      business.stripeCustomerId = customerId;
     }
-
-    // Validate payment details based on method
-    if (paymentMethod === 'stripe' || paymentMethod === 'credit_card') {
-      const { paymentToken, cardLast4 } = req.body;
-      if (!paymentToken) {
-        return res.status(400).json({
-          success: false,
-          error: 'Payment token required',
-          message: 'Payment token is required for card payments'
-        });
-      }
-    } else if (paymentMethod === 'paypal') {
-      const { paypalOrderId } = req.body;
-      if (!paypalOrderId) {
-        return res.status(400).json({
-          success: false,
-          error: 'PayPal order ID required',
-          message: 'PayPal order ID is required for PayPal payments'
-        });
-      }
-    }
-
-    // TODO: Process payment
-    // This is a placeholder - integrate with payment provider (Stripe, PayPal, etc.)
-    // For now, we'll simulate successful payment
-    const paymentResult = {
-      success: true,
-      transactionId: `txn_${Date.now()}`,
-      amount: tierConfig.price,
-      currency: 'USD',
-      paymentMethod: paymentMethod
-    };
-
-    if (!paymentResult.success) {
-      return res.status(402).json({
-        success: false,
-        error: 'Payment failed',
-        message: 'Payment processing failed. Please try again.',
-        paymentMethod: paymentMethod
-      });
-    }
-
-    // Validate payment was processed successfully
-    if (!paymentResult.transactionId) {
-      return res.status(402).json({
-        success: false,
-        error: 'Payment processing error',
-        message: 'Payment transaction ID is missing. Payment may not have been processed.'
-      });
-    }
-
-    // Update business membership tier
+    
+    // Attach payment method
+    await stripeService.createPaymentMethod(paymentMethodId, customerId);
+    
+    // Create subscription
+    const subscription = await stripeService.createSubscription(customerId, priceId, {
+      businessId,
+      tier
+    });
+    
+    // Calculate transaction amounts
+    const tierConfig = getTierConfig(tier);
+    const grossAmount = tierConfig.price * 100; // Convert to cents
+    const stripeFee = calculateStripeFee(grossAmount);
+    const netAmount = grossAmount - stripeFee;
+    
+    // Create transaction record
+    const transaction = await Transaction.create({
+      type: 'subscription_payment',
+      grossAmount,
+      stripeFee,
+      netAmount,
+      platformShare: netAmount, // Platform keeps all subscription revenue
+      creatorShare: 0,
+      status: 'completed',
+      stripePaymentIntentId: subscription.latest_invoice?.payment_intent,
+      stripeChargeId: subscription.latest_invoice?.charge,
+      payer: businessId,
+      description: `${tier} subscription payment`,
+      completedAt: new Date()
+    });
+    
+    // Update business
     business.membershipTier = tier;
     business.subscriptionStatus = 'active';
-    business.subscriptionStart = new Date();
-    business.subscriptionExpiry = new Date();
-    business.subscriptionExpiry.setMonth(business.subscriptionExpiry.getMonth() + 1); // 1 month from now
-    business.subscriptionPaymentMethod = 'stripe'; // TODO: Get from payment provider
-    business.subscriptionProvider = paymentResult.transactionId;
-
-    // Reset limits for paid tiers (unlimited)
-    // Upload, download, and active license limits are null (unlimited) for paid tiers
-    // We don't need to reset the counts, but we can optionally reset them
-    // For now, we'll keep the counts as they are since limits are checked dynamically
-
+    business.stripeSubscriptionId = subscription.id;
+    business.subscriptionExpiry = new Date(subscription.current_period_end * 1000);
     await business.save();
-
+    
     res.json({
       success: true,
-      message: `Successfully upgraded to ${tierConfig.name} tier`,
       data: {
-        tier: tier,
-        tierName: tierConfig.name,
-        price: tierConfig.price,
-        subscriptionStatus: business.subscriptionStatus,
-        subscriptionExpiry: business.subscriptionExpiry,
-        limits: {
-          upload: tierConfig.uploadLimit,
-          download: tierConfig.downloadLimit,
-          activeLicense: tierConfig.activeLicenseLimit
+        subscription: {
+          id: subscription.id,
+          status: subscription.status,
+          currentPeriodEnd: subscription.current_period_end
         },
-        features: tierConfig.features,
-        revenueSplit: tierConfig.revenueSplit
+        transaction: {
+          id: transaction._id,
+          amount: grossAmount
+        }
       }
     });
   } catch (error) {
@@ -277,53 +227,38 @@ const getSubscriptionStatus = async (req, res, next) => {
  * Cancel subscription
  * POST /api/subscriptions/cancel
  * Middleware: authenticate
- * Downgrade to free tier, apply limits
+ * Cancel Stripe subscription, downgrade to free tier, apply limits
  */
 const cancelSubscription = async (req, res, next) => {
   try {
-    const business = req.business;
-
-    // Check if already on free tier
-    if (business.membershipTier === 'free') {
+    const businessId = req.business._id; // From authenticate middleware
+    const business = await Business.findById(businessId);
+    
+    if (!business.stripeSubscriptionId) {
       return res.status(400).json({
         success: false,
-        error: 'No active subscription',
-        message: 'You are already on the free tier'
+        error: 'no_subscription',
+        message: 'No active subscription found'
       });
     }
-
-    // Get free tier configuration
-    const freeTierConfig = getTierConfig('free');
-
-    // Cancel subscription and downgrade to free
-    business.subscriptionStatus = 'cancelled';
+    
+    const stripeService = new StripeService();
+    const subscription = await stripeService.cancelSubscription(business.stripeSubscriptionId);
+    
+    // Update business
     business.membershipTier = 'free';
+    business.subscriptionStatus = 'cancelled';
     business.subscriptionExpiry = null;
-    business.subscriptionPaymentMethod = null;
-    business.subscriptionProvider = null;
-
-    // Apply limits (Refined Model)
-    // Upload limit: 25 (or 50, configurable)
-    // Download limit: 50/month (enforced monthly)
-    // Active license limit: 3
-
+    business.stripeSubscriptionId = null;
     await business.save();
-
+    
     res.json({
       success: true,
-      message: 'Subscription cancelled successfully. You have been downgraded to the free tier.',
       data: {
-        tier: 'free',
-        tierName: freeTierConfig.name,
-        subscriptionStatus: business.subscriptionStatus,
-        limits: {
-          upload: freeTierConfig.uploadLimit,
-          download: freeTierConfig.downloadLimit,
-          activeLicense: freeTierConfig.activeLicenseLimit
-        },
-        features: freeTierConfig.features,
-        revenueSplit: freeTierConfig.revenueSplit,
-        note: 'Your current usage counts remain, but limits will be enforced'
+        subscription: {
+          id: subscription.id,
+          status: subscription.status
+        }
       }
     });
   } catch (error) {

@@ -1,6 +1,10 @@
 const License = require('../models/License');
 const Media = require('../models/Media');
 const Business = require('../models/Business');
+const Transaction = require('../models/Transaction');
+const StripeService = require('../services/stripeService');
+const { calculateRevenueSplit } = require('../utils/revenueCalculation');
+const { TIER_CONFIG } = require('../config/tiers');
 
 /**
  * Create license request
@@ -1018,6 +1022,128 @@ const getMediaLicenses = async (req, res, next) => {
   }
 };
 
+/**
+ * Process license payment
+ * POST /api/licenses/:id/pay
+ * Middleware: authenticate
+ * Process payment for a pending license
+ */
+const processLicensePayment = async (req, res, next) => {
+  try {
+    const licenseId = req.params.id;
+    const businessId = req.business._id; // Licensee (payer)
+    
+    // Get license
+    const license = await License.findById(licenseId)
+      .populate('licensorId', 'membershipTier stripeConnectAccountId')
+      .populate('licenseeId');
+    
+    if (!license) {
+      return res.status(404).json({
+        success: false,
+        error: 'license_not_found',
+        message: 'License not found'
+      });
+    }
+    
+    if (license.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        error: 'invalid_status',
+        message: 'License is not in pending status'
+      });
+    }
+    
+    const licensor = license.licensorId;
+    const licensee = license.licenseeId;
+    const grossAmount = license.price;
+    
+    // Calculate revenue split
+    const tierConfig = TIER_CONFIG[licensor.membershipTier];
+    const revenueSplit = calculateRevenueSplit(grossAmount * 100, tierConfig); // Convert to cents
+    
+    const stripeService = new StripeService();
+    
+    // Ensure licensee has a Stripe customer ID
+    if (!licensee.stripeCustomerId) {
+      const customer = await stripeService.createCustomer(licensee._id, licensee.email);
+      licensee.stripeCustomerId = customer.id;
+      await licensee.save();
+    }
+    const grossAmountCents = Math.round(grossAmount * 100); // Convert to cents
+    
+    // Create payment intent or destination charge
+    let paymentIntent;
+    if (licensor.stripeConnectAccountId) {
+      // Use destination charge for Connect account
+      const charge = await stripeService.createDestinationCharge(
+        grossAmountCents,
+        licensee.stripeCustomerId,
+        licensor.stripeConnectAccountId,
+        {
+          licenseId: licenseId.toString(),
+          businessId: businessId.toString()
+        }
+      );
+      paymentIntent = { 
+        id: charge.payment_intent || charge.id,
+        client_secret: null // Destination charges don't have client_secret
+      };
+    } else {
+      // Use payment intent (platform collects, then transfers)
+      paymentIntent = await stripeService.createPaymentIntent(
+        grossAmountCents,
+        licensee.stripeCustomerId,
+        {
+          licenseId: licenseId.toString(),
+          businessId: businessId.toString()
+        }
+      );
+    }
+    
+    // Create transaction record
+    const transaction = await Transaction.create({
+      type: 'license_payment',
+      grossAmount: grossAmountCents,
+      stripeFee: revenueSplit.stripeFee,
+      netAmount: revenueSplit.netAmount,
+      creatorShare: revenueSplit.creatorShare,
+      platformShare: revenueSplit.platformShare,
+      status: 'pending',
+      stripePaymentIntentId: paymentIntent.id,
+      payer: businessId,
+      payee: licensor._id,
+      relatedLicense: licenseId,
+      description: `License payment for ${license.licenseType} license`,
+      metadata: {
+        licenseType: license.licenseType,
+        tier: licensor.membershipTier
+      }
+    });
+    
+    // Update license status
+    license.status = 'approved';
+    license.paymentTransactionId = transaction._id;
+    await license.save();
+    
+    res.json({
+      success: true,
+      data: {
+        paymentIntent: {
+          id: paymentIntent.id,
+          clientSecret: paymentIntent.client_secret || null
+        },
+        transaction: {
+          id: transaction._id,
+          amount: grossAmount
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createLicenseRequest,
   getPendingLicenses,
@@ -1031,6 +1157,7 @@ module.exports = {
   getActiveLicenses,
   getExpiredLicenses,
   renewLicense,
-  getMediaLicenses
+  getMediaLicenses,
+  processLicensePayment
 };
 

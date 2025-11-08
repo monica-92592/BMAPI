@@ -1,7 +1,9 @@
 const Business = require('../models/Business');
 const License = require('../models/License');
 const Media = require('../models/Media');
+const Transaction = require('../models/Transaction');
 const { getTierConfig, getTierLimit, TIER_CONFIG } = require('../config/tiers');
+const StripeService = require('../services/stripeService');
 
 /**
  * Get business licenses
@@ -256,10 +258,179 @@ const getTierBenefits = (newTier, currentTierConfig) => {
   return benefits;
 };
 
+/**
+ * Onboard business to Stripe Connect
+ * POST /api/business/stripe/connect/onboard
+ * Middleware: authenticate
+ */
+const onboardStripeConnect = async (req, res, next) => {
+  try {
+    const businessId = req.business._id; // From authenticate middleware
+    const stripeService = new StripeService();
+    
+    // Check if already onboarded
+    const business = await Business.findById(businessId);
+    if (business.stripeConnectAccountId) {
+      return res.status(400).json({
+        success: false,
+        error: 'already_onboarded',
+        message: 'Stripe Connect account already exists'
+      });
+    }
+    
+    // Create Connect account
+    const account = await stripeService.createConnectAccount(businessId);
+    
+    // Create account link
+    const accountLink = await stripeService.createAccountLink(account.id, businessId);
+    
+    // Update Business model
+    business.stripeConnectAccountId = account.id;
+    business.stripeConnectStatus = 'pending';
+    await business.save();
+    
+    res.json({
+      success: true,
+      data: {
+        accountId: account.id,
+        onboardingUrl: accountLink.url
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get Stripe Connect status
+ * GET /api/business/stripe/connect/status
+ * Middleware: authenticate
+ */
+const getStripeConnectStatus = async (req, res, next) => {
+  try {
+    const businessId = req.business._id; // From authenticate middleware
+    const business = await Business.findById(businessId);
+    
+    if (!business.stripeConnectAccountId) {
+      return res.json({
+        success: true,
+        data: {
+          status: 'not_started',
+          accountId: null
+        }
+      });
+    }
+    
+    const stripeService = new StripeService();
+    const isActive = await stripeService.isAccountActive(business.stripeConnectAccountId);
+    
+    res.json({
+      success: true,
+      data: {
+        status: isActive ? 'active' : business.stripeConnectStatus,
+        accountId: business.stripeConnectAccountId
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Request payout
+ * POST /api/business/payouts/request
+ * Middleware: authenticate
+ * Body: { amount: number }
+ */
+const requestPayout = async (req, res, next) => {
+  try {
+    const businessId = req.business._id; // From authenticate middleware
+    const { amount } = req.body;
+    
+    const business = await Business.findById(businessId);
+    
+    if (!business.stripeConnectAccountId) {
+      return res.status(400).json({
+        success: false,
+        error: 'no_connect_account',
+        message: 'Stripe Connect account not set up'
+      });
+    }
+    
+    // Validate minimum payout ($25)
+    const MIN_PAYOUT = 25;
+    if (amount < MIN_PAYOUT) {
+      return res.status(400).json({
+        success: false,
+        error: 'below_minimum',
+        message: `Minimum payout amount is $${MIN_PAYOUT}`
+      });
+    }
+    
+    // Check available balance
+    if ((business.revenueBalance || 0) < amount) {
+      return res.status(400).json({
+        success: false,
+        error: 'insufficient_balance',
+        message: 'Insufficient balance for payout'
+      });
+    }
+    
+    const stripeService = new StripeService();
+    const payout = await stripeService.createPayout(
+      business.stripeConnectAccountId,
+      Math.round(amount * 100), // Convert to cents
+      {
+        businessId: businessId.toString()
+      }
+    );
+    
+    // Create transaction record
+    const transaction = await Transaction.create({
+      type: 'payout',
+      grossAmount: Math.round(amount * 100), // Convert to cents
+      stripeFee: 0, // Payouts have no fee
+      netAmount: Math.round(amount * 100), // Convert to cents
+      creatorShare: Math.round(amount * 100), // Convert to cents
+      platformShare: 0,
+      status: 'pending',
+      stripePayoutId: payout.id,
+      payee: businessId,
+      description: `Payout request for $${amount}`,
+      metadata: {
+        payoutId: payout.id
+      }
+    });
+    
+    // Update business balance
+    business.revenueBalance = (business.revenueBalance || 0) - amount;
+    await business.save();
+    
+    res.json({
+      success: true,
+      data: {
+        payout: {
+          id: payout.id,
+          amount: amount,
+          status: payout.status
+        },
+        transaction: {
+          id: transaction._id
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getBusinessLicenses,
   getLicenseStats,
   getBusinessLimits,
-  getTierInfo
+  getTierInfo,
+  onboardStripeConnect,
+  getStripeConnectStatus,
+  requestPayout
 };
 

@@ -6,7 +6,10 @@ const {
   getBusinessLicenses,
   getLicenseStats,
   getBusinessLimits,
-  getTierInfo
+  getTierInfo,
+  onboardStripeConnect,
+  getStripeConnectStatus,
+  requestPayout
 } = require('../controllers/businessController');
 
 // All routes require authentication (applied in app.js)
@@ -49,6 +52,39 @@ router.get('/limits', getBusinessLimits);
  * Response: { currentTier, limits, features, upgradeOptions }
  */
 router.get('/tier', getTierInfo);
+
+// ============================================
+// Stripe Connect Routes
+// ============================================
+
+/**
+ * POST /api/business/stripe/connect/onboard
+ * Onboard business to Stripe Connect
+ * Middleware: authenticate (app.js)
+ * Response: { accountId, onboardingUrl }
+ */
+router.post('/stripe/connect/onboard', onboardStripeConnect);
+
+/**
+ * GET /api/business/stripe/connect/status
+ * Get Stripe Connect status
+ * Middleware: authenticate (app.js)
+ * Response: { status, accountId }
+ */
+router.get('/stripe/connect/status', getStripeConnectStatus);
+
+// ============================================
+// Payout Routes
+// ============================================
+
+/**
+ * POST /api/business/payouts/request
+ * Request payout
+ * Middleware: authenticate (app.js)
+ * Body: { amount: number }
+ * Response: { payout: { id, amount, status }, transaction: { id } }
+ */
+router.post('/payouts/request', requestPayout);
 
 module.exports = router;
 

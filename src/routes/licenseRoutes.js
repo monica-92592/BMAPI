@@ -20,7 +20,8 @@ const {
   cancelLicense,
   getActiveLicenses,
   getExpiredLicenses,
-  renewLicense
+  renewLicense,
+  processLicensePayment
 } = require('../controllers/licenseController');
 
 // All routes require authentication (applied in app.js)
@@ -121,6 +122,18 @@ router.get('/expired', getExpiredLicenses);
  * Body: { duration }
  */
 router.put('/:id/renew', checkActiveLicenseLimit, renewLicense);
+
+// ============================================
+// License Payment Routes
+// ============================================
+
+/**
+ * POST /api/licenses/:id/pay
+ * Process license payment
+ * Middleware: authenticate (app.js)
+ * Process payment for a pending license
+ */
+router.post('/:id/pay', processLicensePayment);
 
 // ============================================
 // License Usage Routes
