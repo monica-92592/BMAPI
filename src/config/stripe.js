@@ -14,22 +14,21 @@
  * @module config/stripe
  */
 
-// TODO: Initialize Stripe when account is configured
-// 
-// When Stripe account is ready, uncomment the following code:
-//
-// const Stripe = require('stripe');
-// 
-// // Initialize Stripe with secret key from environment variables
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-//   apiVersion: '2024-11-20.acacia', // Use latest API version
-//   typescript: false
-// });
-//
-// // Export Stripe instance
-// module.exports = stripe;
+const Stripe = require('stripe');
 
-// Placeholder export (null until Stripe is configured)
-// This will be replaced with the actual Stripe instance when ready
-module.exports = null;
+// Initialize Stripe with secret key from environment variables
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn('⚠️  STRIPE_SECRET_KEY not found in environment variables. Stripe functionality will be disabled.');
+  module.exports = null;
+} else {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2024-11-20.acacia', // Use latest API version
+    typescript: false
+  });
+
+  console.log('✅ Stripe initialized successfully');
+  
+  // Export Stripe instance
+  module.exports = stripe;
+}
 

@@ -35,6 +35,9 @@ class StripeService {
   constructor() {
     // Stripe instance will be available when configured
     this.stripe = stripe;
+    if (!this.stripe) {
+      throw new Error('Stripe is not configured. Please set STRIPE_SECRET_KEY in environment variables.');
+    }
   }
 
   /**
