@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const errorHandler = require('./middlewares/errorMiddleware');
+const webhookRoutes = require('./routes/webhookRoutes');
 const mediaRoutes = require('./routes/mediaRoutes');
 const authRoutes = require('./routes/authRoutes');
 const businessRoutes = require('./routes/businessRoutes');
@@ -34,7 +35,11 @@ app.use(cors());
 // Logging middleware
 app.use(morgan('combined'));
 
-// Body parser middleware
+// Webhook routes - MUST be before body parser middleware
+// Webhooks require raw body for signature verification
+app.use('/api/webhooks', webhookRoutes);
+
+// Body parser middleware (after webhooks)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

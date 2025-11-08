@@ -265,14 +265,22 @@ function createMockWebhookEvent(eventType, eventData = {}, overrides = {}) {
  * const payload = JSON.stringify(webhookEvent);
  * const signature = simulateWebhookSignature(payload);
  */
-function simulateWebhookSignature(payload, secret = 'whsec_test_secret') {
+function simulateWebhookSignature(payload, secret = 'test_secret') {
   // In production, Stripe uses HMAC SHA256 to generate signatures
   // For testing, we'll create a simple mock signature
   const crypto = require('crypto');
   const timestamp = Math.floor(Date.now() / 1000);
   const signedPayload = `${timestamp}.${payload}`;
+  
+  // Handle Stripe webhook secret format (whsec_ prefix)
+  let secretKey = secret;
+  if (secret && secret.startsWith('whsec_')) {
+    // Extract the actual secret from whsec_ format
+    secretKey = secret.substring(6);
+  }
+  
   const signature = crypto
-    .createHmac('sha256', secret)
+    .createHmac('sha256', secretKey)
     .update(signedPayload)
     .digest('hex');
   

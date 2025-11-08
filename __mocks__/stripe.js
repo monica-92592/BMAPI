@@ -113,9 +113,47 @@ function Stripe(secretKey) {
   this.webhooks = {
     constructEvent: jest.fn((payload, signature, secret) => {
       try {
+        // Verify signature format
+        if (!signature || typeof signature !== 'string') {
+          throw new Error('No signature provided');
+        }
+
+        // Parse signature (format: t=timestamp,v1=signature)
+        const signatureParts = signature.split(',');
+        if (signatureParts.length < 2) {
+          throw new Error('Invalid signature format');
+        }
+
+        // Extract timestamp and signature
+        const timestampMatch = signatureParts[0].match(/t=(\d+)/);
+        const signatureMatch = signatureParts[1].match(/v1=(.+)/);
+
+        if (!timestampMatch || !signatureMatch) {
+          throw new Error('Invalid signature format');
+        }
+
+        // Verify signature using HMAC (same logic as simulateWebhookSignature)
+        const crypto = require('crypto');
+        const timestamp = timestampMatch[1];
+        const providedSignature = signatureMatch[1];
+        const signedPayload = `${timestamp}.${payload}`;
+        const expectedSignature = crypto
+          .createHmac('sha256', secret)
+          .update(signedPayload)
+          .digest('hex');
+
+        // Compare signatures
+        if (providedSignature !== expectedSignature) {
+          throw new Error('Invalid signature');
+        }
+
+        // Parse and return event
         const event = JSON.parse(payload);
         return createMockWebhookEvent(event.type || 'payment_intent.succeeded', event);
       } catch (err) {
+        if (err.message === 'Invalid signature' || err.message === 'No signature provided' || err.message === 'Invalid signature format') {
+          throw err;
+        }
         throw new Error('Invalid webhook payload');
       }
     })
