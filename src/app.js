@@ -3,10 +3,11 @@ const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const errorHandler = require('./middlewares/errorHandler');
+const errorHandler = require('./middlewares/errorMiddleware');
 const mediaRoutes = require('./routes/mediaRoutes');
 const authRoutes = require('./routes/authRoutes');
 const businessRoutes = require('./routes/businessRoutes');
+const businessFinancialRoutes = require('./routes/businessFinancialRoutes');
 const licenseRoutes = require('./routes/licenseRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
@@ -63,6 +64,7 @@ app.get('/api/media/:id/licensing-info', getMediaLicensingInfo);
 // Note: checkUploadLimit is applied at route level in mediaRoutes.js for upload endpoints
 app.use('/api/media', authenticate, mediaRoutes);
 app.use('/api/business', authenticate, businessRoutes);
+app.use('/api/business/financial', authenticate, businessFinancialRoutes);
 app.use('/api/licenses', authenticate, licenseRoutes);
 app.use('/api/subscriptions', authenticate, subscriptionRoutes);
 // Collections routes - optional auth for viewing, Partner tier required for management (applied at route level)

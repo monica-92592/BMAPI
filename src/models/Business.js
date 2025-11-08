@@ -91,6 +91,30 @@ const businessSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // Stripe Connect fields
+  stripeConnectAccountId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  stripeConnectStatus: {
+    type: String,
+    enum: ['not_started', 'pending', 'active', 'disabled'],
+    default: 'not_started'
+  },
+  stripeConnectOnboardedAt: {
+    type: Date
+  },
+  // Stripe Customer fields
+  stripeCustomerId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  stripeSubscriptionId: {
+    type: String,
+    sparse: true
+  },
   // Resource limit tracking
   uploadCount: {
     type: Number,
@@ -122,6 +146,11 @@ const businessSchema = new mongoose.Schema({
   totalSpent: {
     type: Number,
     default: 0
+  },
+  balanceStatus: {
+    type: String,
+    enum: ['positive', 'negative', 'suspended'],
+    default: 'positive'
   },
   transactionHistory: [{
     type: mongoose.Schema.Types.ObjectId,
