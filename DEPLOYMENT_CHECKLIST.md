@@ -17,7 +17,7 @@
 - **Fix Required:**
   ```javascript
   // REMOVE hardcoded URI
-  const uri = process.env.MONGODB_URI || "mongodb+srv://..."; // ❌ REMOVE THIS
+  const uri = process.env.MONGODB_URI || "mongodb+srv://username:password@cluster.mongodb.net/database"; // ❌ REMOVE THIS
   
   // USE ONLY environment variable
   const uri = process.env.MONGODB_URI;
@@ -243,7 +243,7 @@
 
 **Current Code:**
 ```javascript
-const uri = process.env.MONGODB_URI || "mongodb+srv://monica_db_user:LBfhCKmmUIuC1IoY@bmapi.gfhelui.mongodb.net/?appName=BMAPI";
+const uri = process.env.MONGODB_URI || "mongodb+srv://username:password@cluster.mongodb.net/database";
 ```
 
 **Fixed Code:**
@@ -261,7 +261,7 @@ if (!uri) {
 
 **Current:**
 ```env
-MONGODB_URI=mongodb+srv://monica_db_user:LBfhCKmmUIuC1IoY@bmapi.gfhelui.mongodb.net/?appName=BMAPI
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database
 ```
 
 **Fixed:**

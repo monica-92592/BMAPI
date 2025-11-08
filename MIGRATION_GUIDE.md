@@ -72,7 +72,7 @@ cp env.example .env
 
 ```env
 # MongoDB (already configured)
-MONGODB_URI=mongodb+srv://monica_db_user:LBfhCKmmUIuC1IoY@bmapi.gfhelui.mongodb.net/?appName=BMAPI
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database
 MONGODB_DB_NAME=bmapi
 
 # Cloudinary (get from https://cloudinary.com)
