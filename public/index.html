@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Media API - Media Licensing Platform</title>
+    <title>MediaAPI - Sell Your Media Content Online</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -20,10 +20,11 @@
                 <span></span>
             </button>
             <ul class="nav-menu">
-                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#docs">Documentation</a></li>
-                <li><a href="/api-docs" class="nav-btn">API Explorer</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="/docs/API.md" target="_blank">Docs</a></li>
+                <li><a href="#get-started" class="nav-cta">Get Started</a></li>
             </ul>
         </div>
     </nav>
@@ -32,272 +33,346 @@
     <section class="hero">
         <div class="hero-container">
             <div class="hero-content">
-                <h1 class="hero-title">Sell Your Media Content Online</h1>
-                <p class="hero-description">Upload, license, and monetize your images, videos, and audio files. Get paid automatically with our secure payment platform.</p>
-                <div class="hero-actions">
-                    <a href="#getting-started" class="btn btn-primary">Get Started Free</a>
-                    <a href="#docs" class="btn btn-secondary">View API Docs</a>
+                <h1 class="hero-title">Turn Your Media Into Revenue</h1>
+                <p class="hero-subtitle">Upload once, license forever. Our platform handles payments, licensing, and distribution so you can focus on creating.</p>
+                <div class="hero-cta">
+                    <a href="#get-started" class="btn btn-primary">Start Selling Free</a>
+                    <a href="#how-it-works" class="btn btn-secondary">See How It Works</a>
                 </div>
                 <div class="hero-stats">
-                    <div class="stat">
-                        <div class="stat-number">4</div>
-                        <div class="stat-label">Membership Tiers</div>
+                    <div class="stat-item">
+                        <div class="stat-value">$0</div>
+                        <div class="stat-label">Setup Fee</div>
                     </div>
-                    <div class="stat">
-                        <div class="stat-number">95%</div>
-                        <div class="stat-label">Revenue Share</div>
+                    <div class="stat-item">
+                        <div class="stat-value">95%</div>
+                        <div class="stat-label">You Keep</div>
                     </div>
-                    <div class="stat">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Support</div>
+                    <div class="stat-item">
+                        <div class="stat-value">24/7</div>
+                        <div class="stat-label">Automated</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="demo-card">
+                    <div class="demo-header">
+                        <div class="demo-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-image-placeholder">
+                            <div class="demo-image">📷</div>
+                        </div>
+                        <div class="demo-info">
+                            <div class="demo-title">Your Media File</div>
+                            <div class="demo-price">$50 - $500</div>
+                            <div class="demo-status">✓ Licensed</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Quick Start Section -->
-    <section id="getting-started" class="quick-start">
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
         <div class="container">
-            <h2 class="section-title">Get Started in 3 Steps</h2>
-            <div class="steps-container">
-                <div class="step-item">
-                    <div class="step-icon">1️⃣</div>
-                    <h3>Create Account</h3>
-                    <p>Sign up for free and set up your business profile in minutes</p>
-                    <code class="code-block">POST /api/auth/register</code>
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Three simple steps to start earning from your content</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Upload Your Media</h3>
+                        <p>Drag and drop your images, videos, or audio files. We handle processing, optimization, and storage automatically.</p>
+                        <div class="step-visual">
+                            <div class="upload-demo">
+                                <div class="upload-icon">📤</div>
+                                <div class="upload-text">Drop files here</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="step-item">
-                    <div class="step-icon">2️⃣</div>
-                    <h3>Upload Media</h3>
-                    <p>Upload your images, videos, or audio files with automatic processing</p>
-                    <code class="code-block">POST /api/media/upload</code>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Set Your Price</h3>
+                        <p>Choose your pricing and license types. Commercial, editorial, or exclusive - you decide what works for your content.</p>
+                        <div class="step-visual">
+                            <div class="pricing-demo">
+                                <div class="price-option">Commercial: $100</div>
+                                <div class="price-option">Editorial: $50</div>
+                                <div class="price-option">Exclusive: $500</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="step-item">
-                    <div class="step-icon">3️⃣</div>
-                    <h3>Start Earning</h3>
-                    <p>Set prices and license types. Get paid automatically when licensed</p>
-                    <code class="code-block">POST /api/media/:id/licensing</code>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Get Paid Automatically</h3>
+                        <p>When someone licenses your content, payment is processed instantly. Money goes straight to your account - no waiting, no hassle.</p>
+                        <div class="step-visual">
+                            <div class="payment-demo">
+                                <div class="payment-icon">💰</div>
+                                <div class="payment-amount">$100 → Your Account</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
+    <!-- Value Proposition -->
+    <section class="value-prop">
         <div class="container">
-            <h2 class="section-title">Everything You Need to Sell Media</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-icon">💾</div>
-                    <h3>Easy Upload</h3>
-                    <p>Drag and drop or use our API to upload images, videos, and audio files. Automatic thumbnail generation and optimization.</p>
+            <div class="value-grid">
+                <div class="value-item">
+                    <div class="value-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Upload and start selling in minutes. No complicated setup or lengthy approval process.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-icon">💰</div>
-                    <h3>Flexible Pricing</h3>
-                    <p>Set your own prices for commercial, editorial, or exclusive licenses. Multiple pricing tiers supported.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">💳</div>
+                <div class="value-item">
+                    <div class="value-icon">🔒</div>
                     <h3>Secure Payments</h3>
-                    <p>Stripe integration handles all payments securely. Automatic revenue distribution to your account.</p>
+                    <p>Stripe-powered payments with automatic revenue distribution. Your money is safe and arrives on time.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-icon">📊</div>
-                    <h3>Track Earnings</h3>
-                    <p>Real-time dashboard shows your earnings, transactions, and balance. Export reports anytime.</p>
+                <div class="value-item">
+                    <div class="value-icon">📊</div>
+                    <h3>Track Everything</h3>
+                    <p>Real-time dashboard shows every sale, every dollar earned, and every license issued.</p>
                 </div>
-                <div class="feature-item">
-                    <div class="feature-icon">👥</div>
-                    <h3>Team Collaboration</h3>
-                    <p>Create collections and pools to share revenue with team members based on contribution percentages.</p>
-                </div>
-                <div class="feature-item">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Secure & Reliable</h3>
-                    <p>Enterprise-grade security with JWT authentication, rate limiting, and comprehensive error handling.</p>
+                <div class="value-item">
+                    <div class="value-icon">🌐</div>
+                    <h3>Global Reach</h3>
+                    <p>Your content is accessible worldwide. Accept payments in any currency, automatically converted.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Pricing Section -->
+    <!-- Pricing -->
     <section id="pricing" class="pricing">
         <div class="container">
-            <h2 class="section-title">Choose Your Plan</h2>
-            <p class="section-subtitle">Start free, upgrade anytime. Cancel anytime.</p>
-            <div class="pricing-grid">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="section-subtitle">Start free. Upgrade when you're ready. Cancel anytime.</p>
+            <div class="pricing-cards">
                 <div class="pricing-card">
-                    <div class="pricing-header">
-                        <h3>Free</h3>
-                        <div class="price">
-                            <span class="price-amount">$0</span>
-                            <span class="price-period">/month</span>
-                        </div>
+                    <div class="pricing-badge">Free Forever</div>
+                    <h3>Starter</h3>
+                    <div class="price">
+                        <span class="price-amount">$0</span>
+                        <span class="price-period">/month</span>
                     </div>
                     <ul class="pricing-features">
-                        <li>✓ 25-50 media uploads</li>
+                        <li>✓ 50 uploads</li>
                         <li>✓ 50 downloads/month</li>
                         <li>✓ 3 active licenses</li>
-                        <li>✓ 80/20 revenue split</li>
-                        <li>✓ Community support</li>
+                        <li>✓ 80% revenue share</li>
+                        <li>✓ Basic support</li>
                     </ul>
-                    <a href="#getting-started" class="btn btn-outline">Get Started</a>
+                    <a href="#get-started" class="btn btn-outline">Get Started</a>
                 </div>
                 <div class="pricing-card featured">
-                    <div class="popular-badge">Most Popular</div>
-                    <div class="pricing-header">
-                        <h3>Contributor</h3>
-                        <div class="price">
-                            <span class="price-amount">$15</span>
-                            <span class="price-period">/month</span>
-                        </div>
+                    <div class="pricing-badge popular">Most Popular</div>
+                    <h3>Creator</h3>
+                    <div class="price">
+                        <span class="price-amount">$15</span>
+                        <span class="price-period">/month</span>
                     </div>
                     <ul class="pricing-features">
                         <li>✓ Unlimited uploads</li>
                         <li>✓ Unlimited downloads</li>
                         <li>✓ Unlimited licenses</li>
-                        <li>✓ 85/15 revenue split</li>
+                        <li>✓ 85% revenue share</li>
                         <li>✓ Priority support</li>
                         <li>✓ Advanced analytics</li>
                     </ul>
-                    <a href="#getting-started" class="btn btn-primary">Start Free Trial</a>
+                    <a href="#get-started" class="btn btn-primary">Start Free Trial</a>
                 </div>
                 <div class="pricing-card">
-                    <div class="pricing-header">
-                        <h3>Partner</h3>
-                        <div class="price">
-                            <span class="price-amount">$50</span>
-                            <span class="price-period">/month</span>
-                        </div>
+                    <div class="pricing-badge">Best Value</div>
+                    <h3>Professional</h3>
+                    <div class="price">
+                        <span class="price-amount">$50</span>
+                        <span class="price-period">/month</span>
                     </div>
                     <ul class="pricing-features">
-                        <li>✓ Everything in Contributor</li>
-                        <li>✓ 90/10 revenue split</li>
-                        <li>✓ Create collections/pools</li>
+                        <li>✓ Everything in Creator</li>
+                        <li>✓ 90% revenue share</li>
+                        <li>✓ Collections & pools</li>
                         <li>✓ Featured listings</li>
                         <li>✓ API access</li>
                         <li>✓ Custom integrations</li>
                     </ul>
-                    <a href="#getting-started" class="btn btn-outline">Upgrade Now</a>
+                    <a href="#get-started" class="btn btn-outline">Upgrade Now</a>
                 </div>
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <h3>Equity Partner</h3>
-                        <div class="price">
-                            <span class="price-amount">$100</span>
-                            <span class="price-period">/month</span>
+            </div>
+            <div class="pricing-note">
+                <p>All plans include secure payments, automatic licensing, and 24/7 platform access. No hidden fees, no surprises.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Examples -->
+    <section id="examples" class="examples">
+        <div class="container">
+            <h2 class="section-title">Real Examples</h2>
+            <p class="section-subtitle">See how creators are using MediaAPI to monetize their content</p>
+            <div class="examples-grid">
+                <div class="example-card">
+                    <div class="example-header">
+                        <div class="example-avatar">📷</div>
+                        <div class="example-info">
+                            <div class="example-name">Photographer</div>
+                            <div class="example-type">Stock Photography</div>
                         </div>
                     </div>
-                    <ul class="pricing-features">
-                        <li>✓ Everything in Partner</li>
-                        <li>✓ 95/5 revenue split</li>
-                        <li>✓ Exclusive features</li>
-                        <li>✓ White-glove support</li>
-                        <li>✓ Custom integrations</li>
-                        <li>✓ Dedicated account manager</li>
-                    </ul>
-                    <a href="#getting-started" class="btn btn-outline">Contact Sales</a>
+                    <div class="example-stats">
+                        <div class="example-stat">
+                            <div class="stat-label">Files</div>
+                            <div class="stat-value">250</div>
+                        </div>
+                        <div class="example-stat">
+                            <div class="stat-label">Licenses</div>
+                            <div class="stat-value">1,200</div>
+                        </div>
+                        <div class="example-stat">
+                            <div class="stat-label">Earnings</div>
+                            <div class="stat-value">$45K</div>
+                        </div>
+                    </div>
+                    <div class="example-quote">"Made $45K in my first year selling stock photos. The platform handles everything automatically."</div>
+                </div>
+                <div class="example-card">
+                    <div class="example-header">
+                        <div class="example-avatar">🎬</div>
+                        <div class="example-info">
+                            <div class="example-name">Video Creator</div>
+                            <div class="example-type">Stock Footage</div>
+                        </div>
+                    </div>
+                    <div class="example-stats">
+                        <div class="example-stat">
+                            <div class="stat-label">Files</div>
+                            <div class="stat-value">180</div>
+                        </div>
+                        <div class="example-stat">
+                            <div class="stat-label">Licenses</div>
+                            <div class="stat-value">850</div>
+                        </div>
+                        <div class="example-stat">
+                            <div class="stat-label">Earnings</div>
+                            <div class="stat-value">$68K</div>
+                        </div>
+                    </div>
+                    <div class="example-quote">"Videos sell for $200-500 each. The platform makes it so easy to manage everything."</div>
+                </div>
+                <div class="example-card">
+                    <div class="example-header">
+                        <div class="example-avatar">🎵</div>
+                        <div class="example-info">
+                            <div class="example-name">Music Producer</div>
+                            <div class="example-type">Stock Music</div>
+                        </div>
+                    </div>
+                    <div class="example-stats">
+                        <div class="example-stat">
+                            <div class="stat-label">Files</div>
+                            <div class="stat-value">320</div>
+                        </div>
+                        <div class="example-stat">
+                            <div class="stat-label">Licenses</div>
+                            <div class="stat-value">2,100</div>
+                        </div>
+                        <div class="example-stat">
+                            <div class="stat-label">Earnings</div>
+                            <div class="stat-value">$89K</div>
+                        </div>
+                    </div>
+                    <div class="example-quote">"Passive income from music licensing. Set it and forget it - the platform does the rest."</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- API Documentation Section -->
-    <section id="docs" class="docs">
+    <!-- API Demo -->
+    <section class="api-demo">
         <div class="container">
-            <h2 class="section-title">API Documentation</h2>
-            <p class="section-subtitle">Comprehensive API for developers. Simple, secure, and well-documented.</p>
-            <div class="docs-grid">
-                <div class="docs-card">
-                    <div class="docs-icon">🔐</div>
-                    <h3>Authentication</h3>
-                    <p>Secure JWT-based authentication</p>
-                    <div class="docs-endpoints">
-                        <code>POST /api/auth/register</code>
-                        <code>POST /api/auth/login</code>
-                        <code>GET /api/auth/me</code>
-                    </div>
+            <h2 class="section-title">Developer-Friendly API</h2>
+            <p class="section-subtitle">Integrate MediaAPI into your own application with our simple REST API</p>
+            <div class="demo-container">
+                <div class="demo-tabs">
+                    <button class="demo-tab active" data-tab="upload">Upload</button>
+                    <button class="demo-tab" data-tab="license">License</button>
+                    <button class="demo-tab" data-tab="payment">Payment</button>
                 </div>
-                <div class="docs-card">
-                    <div class="docs-icon">📁</div>
-                    <h3>Media Management</h3>
-                    <p>Upload, list, and manage media files</p>
-                    <div class="docs-endpoints">
-                        <code>POST /api/media/upload</code>
-                        <code>GET /api/media</code>
-                        <code>GET /api/media/:id</code>
+                <div class="demo-content">
+                    <div class="demo-panel active" id="upload-panel">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>POST /api/media/upload</span>
+                                <button class="code-copy">Copy</button>
+                            </div>
+                            <pre><code>curl -X POST https://api.mediaapi.com/api/media/upload \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@image.jpg" \
+  -F "category=image" \
+  -F "title=My Photo"</code></pre>
+                        </div>
                     </div>
-                </div>
-                <div class="docs-card">
-                    <div class="docs-icon">📄</div>
-                    <h3>Licensing</h3>
-                    <p>Request and manage licenses</p>
-                    <div class="docs-endpoints">
-                        <code>POST /api/licenses/request</code>
-                        <code>GET /api/licenses</code>
-                        <code>POST /api/licenses/:id/pay</code>
+                    <div class="demo-panel" id="license-panel">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>POST /api/licenses/request</span>
+                                <button class="code-copy">Copy</button>
+                            </div>
+                            <pre><code>curl -X POST https://api.mediaapi.com/api/licenses/request \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mediaId": "media_123",
+    "licenseType": "commercial",
+    "price": 100
+  }'</code></pre>
+                        </div>
                     </div>
-                </div>
-                <div class="docs-card">
-                    <div class="docs-icon">💳</div>
-                    <h3>Subscriptions</h3>
-                    <p>Manage membership tiers</p>
-                    <div class="docs-endpoints">
-                        <code>POST /api/subscriptions/upgrade</code>
-                        <code>POST /api/subscriptions/cancel</code>
-                        <code>GET /api/subscriptions/status</code>
-                    </div>
-                </div>
-                <div class="docs-card">
-                    <div class="docs-icon">💰</div>
-                    <h3>Financial</h3>
-                    <p>View earnings and transactions</p>
-                    <div class="docs-endpoints">
-                        <code>GET /api/business/financial/overview</code>
-                        <code>GET /api/business/financial/transactions</code>
-                        <code>GET /api/business/financial/balance</code>
-                    </div>
-                </div>
-                <div class="docs-card">
-                    <div class="docs-icon">🔗</div>
-                    <h3>Stripe Connect</h3>
-                    <p>Onboard creators and process payouts</p>
-                    <div class="docs-endpoints">
-                        <code>POST /api/business/stripe/connect/onboard</code>
-                        <code>GET /api/business/stripe/connect/status</code>
-                        <code>POST /api/business/payouts/request</code>
+                    <div class="demo-panel" id="payment-panel">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span>POST /api/licenses/:id/pay</span>
+                                <button class="code-copy">Copy</button>
+                            </div>
+                            <pre><code>curl -X POST https://api.mediaapi.com/api/licenses/123/pay \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json"</code></pre>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="docs-cta">
-                <a href="/docs/API.md" class="btn btn-primary">View Full Documentation</a>
+            <div class="api-cta">
+                <a href="/docs/API.md" target="_blank" class="btn btn-primary">View Full API Documentation</a>
             </div>
         </div>
     </section>
 
-    <!-- Status Section -->
-    <section class="status-section">
+    <!-- CTA Section -->
+    <section id="get-started" class="cta-section">
         <div class="container">
-            <div class="status-card">
-                <div class="status-header">
-                    <h3>API Status</h3>
-                    <div class="status-indicator" id="status-indicator">
-                        <span class="status-dot" id="status-dot"></span>
-                        <span id="status-text">Checking...</span>
-                    </div>
+            <div class="cta-content">
+                <h2>Ready to Start Selling?</h2>
+                <p>Join thousands of creators already earning from their content. Setup takes less than 5 minutes.</p>
+                <div class="cta-buttons">
+                    <a href="/api/auth/register" class="btn btn-primary large">Create Free Account</a>
+                    <a href="/docs/API.md" target="_blank" class="btn btn-secondary large">View API Docs</a>
                 </div>
-                <p id="status-message" class="status-message">Checking API status...</p>
-                <div class="status-details">
-                    <div class="status-item">
-                        <span class="status-label">Uptime:</span>
-                        <span class="status-value" id="uptime">--</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Response Time:</span>
-                        <span class="status-value" id="response-time">--</span>
-                    </div>
+                <div class="cta-features">
+                    <div class="cta-feature">✓ No credit card required</div>
+                    <div class="cta-feature">✓ Free forever plan available</div>
+                    <div class="cta-feature">✓ Cancel anytime</div>
                 </div>
             </div>
         </div>
@@ -307,33 +382,41 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-column">
-                    <h4>MediaAPI</h4>
-                    <p>Media licensing platform for businesses. Upload, license, and monetize your content.</p>
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <span class="logo-icon">📸</span>
+                        <span class="logo-text">MediaAPI</span>
+                    </div>
+                    <p>Turn your media into revenue. Simple, secure, automated.</p>
                 </div>
-                <div class="footer-column">
-                    <h4>Resources</h4>
-                    <ul>
-                        <li><a href="/docs/API.md">API Documentation</a></li>
-                        <li><a href="/docs/REVENUE_CALCULATION.md">Revenue Guide</a></li>
-                        <li><a href="/README.md">Getting Started</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="/QUICK_START.md">Quick Start</a></li>
-                        <li><a href="/TESTING.md">Testing Guide</a></li>
-                        <li><a href="/MIGRATION_GUIDE.md">Migration Guide</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h4>Legal</h4>
-                    <ul>
-                        <li><a href="#terms">Terms of Service</a></li>
-                        <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#security">Security</a></li>
-                    </ul>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Product</h4>
+                        <ul>
+                            <li><a href="#how-it-works">How It Works</a></li>
+                            <li><a href="#pricing">Pricing</a></li>
+                            <li><a href="#examples">Examples</a></li>
+                            <li><a href="/docs/API.md" target="_blank">API Docs</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="/docs/API.md" target="_blank">Documentation</a></li>
+                            <li><a href="/docs/REVENUE_CALCULATION.md" target="_blank">Revenue Guide</a></li>
+                            <li><a href="/README.md" target="_blank">Getting Started</a></li>
+                            <li><a href="/QUICK_START.md" target="_blank">Quick Start</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <ul>
+                            <li><a href="/TESTING.md" target="_blank">Testing Guide</a></li>
+                            <li><a href="/MIGRATION_GUIDE.md" target="_blank">Migration</a></li>
+                            <li><a href="#status">API Status</a></li>
+                            <li><a href="#contact">Contact</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">

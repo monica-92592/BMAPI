@@ -1,4 +1,4 @@
-// Mobile Navigation Toggle
+// Mobile Navigation
 const navToggle = document.querySelector('.nav-toggle');
 const navMenu = document.querySelector('.nav-menu');
 
@@ -11,7 +11,7 @@ if (navToggle) {
 
 // Close mobile menu when clicking outside
 document.addEventListener('click', (e) => {
-    if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+    if (navToggle && navMenu && !navToggle.contains(e.target) && !navMenu.contains(e.target)) {
         navMenu.classList.remove('active');
         navToggle.classList.remove('active');
     }
@@ -23,72 +23,81 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
-            const offsetTop = target.offsetTop - 80; // Account for sticky nav
+            const offsetTop = target.offsetTop - 80;
             window.scrollTo({
                 top: offsetTop,
                 behavior: 'smooth'
             });
-            // Close mobile menu if open
-            navMenu.classList.remove('active');
-            navToggle.classList.remove('active');
+            // Close mobile menu
+            if (navMenu) navMenu.classList.remove('active');
+            if (navToggle) navToggle.classList.remove('active');
         }
     });
 });
 
-// API Status Check
-let statusCheckInterval;
+// API Demo Tabs
+const demoTabs = document.querySelectorAll('.demo-tab');
+const demoPanels = document.querySelectorAll('.demo-panel');
 
-async function checkAPIStatus() {
-    const statusDot = document.getElementById('status-dot');
-    const statusText = document.getElementById('status-text');
-    const statusMessage = document.getElementById('status-message');
-    const uptimeEl = document.getElementById('uptime');
-    const responseTimeEl = document.getElementById('response-time');
+demoTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const targetTab = tab.getAttribute('data-tab');
+        
+        // Remove active class from all tabs and panels
+        demoTabs.forEach(t => t.classList.remove('active'));
+        demoPanels.forEach(p => p.classList.remove('active'));
+        
+        // Add active class to clicked tab and corresponding panel
+        tab.classList.add('active');
+        const panel = document.getElementById(`${targetTab}-panel`);
+        if (panel) panel.classList.add('active');
+    });
+});
 
-    if (!statusDot || !statusText || !statusMessage) return;
+// Code Copy Functionality
+const codeCopyButtons = document.querySelectorAll('.code-copy');
 
-    try {
-        const startTime = performance.now();
-        const response = await fetch('/health');
-        const endTime = performance.now();
-        const responseTime = Math.round(endTime - startTime);
-        const data = await response.json();
+codeCopyButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const codeBlock = button.closest('.code-block');
+        const code = codeBlock.querySelector('code');
+        const text = code.textContent;
+        
+        navigator.clipboard.writeText(text).then(() => {
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+                button.textContent = 'Copy';
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+        });
+    });
+});
 
-        if (response.ok && data.success) {
-            statusDot.classList.remove('offline');
-            statusDot.classList.add('online');
-            statusText.textContent = 'Online';
-            statusMessage.textContent = 'API is running and ready to accept requests';
-            if (responseTimeEl) responseTimeEl.textContent = `${responseTime}ms`;
-            if (uptimeEl) uptimeEl.textContent = '99.9%';
-        } else {
-            throw new Error('API returned error');
+// Intersection Observer for Animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
         }
-    } catch (error) {
-        statusDot.classList.remove('online');
-        statusDot.classList.add('offline');
-        statusText.textContent = 'Offline';
-        statusMessage.textContent = 'Unable to connect to API. Please check your connection.';
-        if (responseTimeEl) responseTimeEl.textContent = '--';
-        if (uptimeEl) uptimeEl.textContent = '--';
-    }
-}
+    });
+}, observerOptions);
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-    checkAPIStatus();
-    // Check status every 30 seconds
-    statusCheckInterval = setInterval(checkAPIStatus, 30000);
+// Observe elements for animation
+document.querySelectorAll('.step, .value-item, .example-card, .pricing-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
 });
 
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-    if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-    }
-});
-
-// Add active state to navigation links on scroll
+// Active Navigation Link on Scroll
 const sections = document.querySelectorAll('section[id]');
 const navLinks = document.querySelectorAll('.nav-menu a[href^="#"]');
 
@@ -112,3 +121,12 @@ function updateActiveNavLink() {
 }
 
 window.addEventListener('scroll', updateActiveNavLink);
+
+// Parallax Effect for Hero
+window.addEventListener('scroll', () => {
+    const scrolled = window.pageYOffset;
+    const hero = document.querySelector('.hero');
+    if (hero) {
+        hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+    }
+});
