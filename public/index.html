@@ -9,28 +9,76 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="container">
-            <div class="nav-brand">
-                <h1>Business Media API</h1>
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">📸</span>
+                <span class="logo-text">MediaAPI</span>
             </div>
+            <button class="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <ul class="nav-menu">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#api">API Docs</a></li>
-                <li><a href="#getting-started">Get Started</a></li>
-                <li><a href="/api-docs" class="btn-primary">API Explorer</a></li>
+                <li><a href="#docs">Documentation</a></li>
+                <li><a href="/api-docs" class="nav-btn">API Explorer</a></li>
             </ul>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">Sell Your Media Content Online</h1>
+                <p class="hero-description">Upload, license, and monetize your images, videos, and audio files. Get paid automatically with our secure payment platform.</p>
+                <div class="hero-actions">
+                    <a href="#getting-started" class="btn btn-primary">Get Started Free</a>
+                    <a href="#docs" class="btn btn-secondary">View API Docs</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-number">4</div>
+                        <div class="stat-label">Membership Tiers</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">95%</div>
+                        <div class="stat-label">Revenue Share</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Support</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section id="getting-started" class="quick-start">
         <div class="container">
-            <h1 class="hero-title">Media Licensing Platform for Businesses</h1>
-            <p class="hero-subtitle">Upload, license, and monetize your media content with our comprehensive API platform</p>
-            <div class="hero-buttons">
-                <a href="#getting-started" class="btn btn-primary">Get Started</a>
-                <a href="#api" class="btn btn-secondary">View API Docs</a>
+            <h2 class="section-title">Get Started in 3 Steps</h2>
+            <div class="steps-container">
+                <div class="step-item">
+                    <div class="step-icon">1️⃣</div>
+                    <h3>Create Account</h3>
+                    <p>Sign up for free and set up your business profile in minutes</p>
+                    <code class="code-block">POST /api/auth/register</code>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon">2️⃣</div>
+                    <h3>Upload Media</h3>
+                    <p>Upload your images, videos, or audio files with automatic processing</p>
+                    <code class="code-block">POST /api/media/upload</code>
+                </div>
+                <div class="step-item">
+                    <div class="step-icon">3️⃣</div>
+                    <h3>Start Earning</h3>
+                    <p>Set prices and license types. Get paid automatically when licensed</p>
+                    <code class="code-block">POST /api/media/:id/licensing</code>
+                </div>
             </div>
         </div>
     </section>
@@ -38,37 +86,37 @@
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="container">
-            <h2 class="section-title">Platform Features</h2>
+            <h2 class="section-title">Everything You Need to Sell Media</h2>
             <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📸</div>
-                    <h3>Media Management</h3>
-                    <p>Upload, process, and serve images, videos, and audio files with automatic thumbnail generation and optimization.</p>
+                <div class="feature-item">
+                    <div class="feature-icon">💾</div>
+                    <h3>Easy Upload</h3>
+                    <p>Drag and drop or use our API to upload images, videos, and audio files. Automatic thumbnail generation and optimization.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📄</div>
-                    <h3>Media Licensing</h3>
-                    <p>Commercial, editorial, and exclusive license types with automated workflow and payment processing.</p>
+                <div class="feature-item">
+                    <div class="feature-icon">💰</div>
+                    <h3>Flexible Pricing</h3>
+                    <p>Set your own prices for commercial, editorial, or exclusive licenses. Multiple pricing tiers supported.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-item">
                     <div class="feature-icon">💳</div>
-                    <h3>Payment Processing</h3>
-                    <p>Stripe integration for secure license payments, subscriptions, and creator payouts via Stripe Connect.</p>
+                    <h3>Secure Payments</h3>
+                    <p>Stripe integration handles all payments securely. Automatic revenue distribution to your account.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-item">
                     <div class="feature-icon">📊</div>
-                    <h3>Financial Dashboard</h3>
-                    <p>Comprehensive revenue tracking, transaction history, balance management, and pool earnings breakdown.</p>
+                    <h3>Track Earnings</h3>
+                    <p>Real-time dashboard shows your earnings, transactions, and balance. Export reports anytime.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-item">
                     <div class="feature-icon">👥</div>
-                    <h3>Collections & Pools</h3>
-                    <p>Group media into collections with revenue sharing based on contribution percentages.</p>
+                    <h3>Team Collaboration</h3>
+                    <p>Create collections and pools to share revenue with team members based on contribution percentages.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-item">
                     <div class="feature-icon">🔒</div>
                     <h3>Secure & Reliable</h3>
-                    <p>JWT authentication, rate limiting, input validation, and comprehensive error handling.</p>
+                    <p>Enterprise-grade security with JWT authentication, rate limiting, and comprehensive error handling.</p>
                 </div>
             </div>
         </div>
@@ -77,174 +125,180 @@
     <!-- Pricing Section -->
     <section id="pricing" class="pricing">
         <div class="container">
-            <h2 class="section-title">Membership Tiers</h2>
+            <h2 class="section-title">Choose Your Plan</h2>
+            <p class="section-subtitle">Start free, upgrade anytime. Cancel anytime.</p>
             <div class="pricing-grid">
                 <div class="pricing-card">
-                    <h3>Free</h3>
-                    <div class="price">$0<span>/month</span></div>
+                    <div class="pricing-header">
+                        <h3>Free</h3>
+                        <div class="price">
+                            <span class="price-amount">$0</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
                     <ul class="pricing-features">
-                        <li>25-50 media uploads</li>
-                        <li>50 downloads/month</li>
-                        <li>3 active licenses</li>
-                        <li>80/20 revenue split</li>
-                        <li>Community forum access</li>
+                        <li>✓ 25-50 media uploads</li>
+                        <li>✓ 50 downloads/month</li>
+                        <li>✓ 3 active licenses</li>
+                        <li>✓ 80/20 revenue split</li>
+                        <li>✓ Community support</li>
                     </ul>
                     <a href="#getting-started" class="btn btn-outline">Get Started</a>
                 </div>
                 <div class="pricing-card featured">
-                    <div class="badge">Popular</div>
-                    <h3>Contributor</h3>
-                    <div class="price">$15<span>/month</span></div>
+                    <div class="popular-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3>Contributor</h3>
+                        <div class="price">
+                            <span class="price-amount">$15</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
                     <ul class="pricing-features">
-                        <li>✅ Unlimited uploads</li>
-                        <li>✅ Unlimited downloads</li>
-                        <li>✅ Unlimited active licenses</li>
-                        <li>✅ 85/15 revenue split</li>
-                        <li>✅ Priority support</li>
-                        <li>✅ Advanced analytics</li>
+                        <li>✓ Unlimited uploads</li>
+                        <li>✓ Unlimited downloads</li>
+                        <li>✓ Unlimited licenses</li>
+                        <li>✓ 85/15 revenue split</li>
+                        <li>✓ Priority support</li>
+                        <li>✓ Advanced analytics</li>
                     </ul>
-                    <a href="#getting-started" class="btn btn-primary">Upgrade Now</a>
+                    <a href="#getting-started" class="btn btn-primary">Start Free Trial</a>
                 </div>
                 <div class="pricing-card">
-                    <h3>Partner</h3>
-                    <div class="price">$50<span>/month</span></div>
+                    <div class="pricing-header">
+                        <h3>Partner</h3>
+                        <div class="price">
+                            <span class="price-amount">$50</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
                     <ul class="pricing-features">
-                        <li>✅ Everything in Contributor</li>
-                        <li>✅ 90/10 revenue split</li>
-                        <li>✅ Create collections/pools</li>
-                        <li>✅ Featured listings</li>
-                        <li>✅ API access</li>
+                        <li>✓ Everything in Contributor</li>
+                        <li>✓ 90/10 revenue split</li>
+                        <li>✓ Create collections/pools</li>
+                        <li>✓ Featured listings</li>
+                        <li>✓ API access</li>
+                        <li>✓ Custom integrations</li>
                     </ul>
                     <a href="#getting-started" class="btn btn-outline">Upgrade Now</a>
                 </div>
                 <div class="pricing-card">
-                    <h3>Equity Partner</h3>
-                    <div class="price">$100<span>/month</span></div>
+                    <div class="pricing-header">
+                        <h3>Equity Partner</h3>
+                        <div class="price">
+                            <span class="price-amount">$100</span>
+                            <span class="price-period">/month</span>
+                        </div>
+                    </div>
                     <ul class="pricing-features">
-                        <li>✅ Everything in Partner</li>
-                        <li>✅ 95/5 revenue split</li>
-                        <li>✅ Exclusive features</li>
-                        <li>✅ White-glove support</li>
-                        <li>✅ Custom integrations</li>
+                        <li>✓ Everything in Partner</li>
+                        <li>✓ 95/5 revenue split</li>
+                        <li>✓ Exclusive features</li>
+                        <li>✓ White-glove support</li>
+                        <li>✓ Custom integrations</li>
+                        <li>✓ Dedicated account manager</li>
                     </ul>
-                    <a href="#getting-started" class="btn btn-outline">Upgrade Now</a>
+                    <a href="#getting-started" class="btn btn-outline">Contact Sales</a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- API Documentation Section -->
-    <section id="api" class="api-docs">
+    <section id="docs" class="docs">
         <div class="container">
             <h2 class="section-title">API Documentation</h2>
-            <div class="api-grid">
-                <div class="api-card">
+            <p class="section-subtitle">Comprehensive API for developers. Simple, secure, and well-documented.</p>
+            <div class="docs-grid">
+                <div class="docs-card">
+                    <div class="docs-icon">🔐</div>
                     <h3>Authentication</h3>
-                    <p>JWT-based authentication for secure API access</p>
-                    <ul>
-                        <li><code>POST /api/auth/register</code> - Register new business</li>
-                        <li><code>POST /api/auth/login</code> - Login and get token</li>
-                        <li><code>GET /api/auth/me</code> - Get current user</li>
-                    </ul>
-                    <a href="/docs/API.md#authentication" class="link">View Docs →</a>
+                    <p>Secure JWT-based authentication</p>
+                    <div class="docs-endpoints">
+                        <code>POST /api/auth/register</code>
+                        <code>POST /api/auth/login</code>
+                        <code>GET /api/auth/me</code>
+                    </div>
                 </div>
-                <div class="api-card">
+                <div class="docs-card">
+                    <div class="docs-icon">📁</div>
                     <h3>Media Management</h3>
                     <p>Upload, list, and manage media files</p>
-                    <ul>
-                        <li><code>POST /api/media/upload</code> - Upload media</li>
-                        <li><code>GET /api/media</code> - List media</li>
-                        <li><code>GET /api/media/:id</code> - Get media details</li>
-                    </ul>
-                    <a href="/docs/API.md#media" class="link">View Docs →</a>
+                    <div class="docs-endpoints">
+                        <code>POST /api/media/upload</code>
+                        <code>GET /api/media</code>
+                        <code>GET /api/media/:id</code>
+                    </div>
                 </div>
-                <div class="api-card">
+                <div class="docs-card">
+                    <div class="docs-icon">📄</div>
                     <h3>Licensing</h3>
-                    <p>Request and manage media licenses</p>
-                    <ul>
-                        <li><code>POST /api/licenses/request</code> - Request license</li>
-                        <li><code>GET /api/licenses</code> - List licenses</li>
-                        <li><code>POST /api/licenses/:id/pay</code> - Process payment</li>
-                    </ul>
-                    <a href="/docs/API.md#licensing" class="link">View Docs →</a>
+                    <p>Request and manage licenses</p>
+                    <div class="docs-endpoints">
+                        <code>POST /api/licenses/request</code>
+                        <code>GET /api/licenses</code>
+                        <code>POST /api/licenses/:id/pay</code>
+                    </div>
                 </div>
-                <div class="api-card">
+                <div class="docs-card">
+                    <div class="docs-icon">💳</div>
                     <h3>Subscriptions</h3>
-                    <p>Manage membership tiers and subscriptions</p>
-                    <ul>
-                        <li><code>POST /api/subscriptions/upgrade</code> - Upgrade tier</li>
-                        <li><code>POST /api/subscriptions/cancel</code> - Cancel subscription</li>
-                        <li><code>GET /api/subscriptions/status</code> - Get status</li>
-                    </ul>
-                    <a href="/docs/API.md#subscriptions" class="link">View Docs →</a>
+                    <p>Manage membership tiers</p>
+                    <div class="docs-endpoints">
+                        <code>POST /api/subscriptions/upgrade</code>
+                        <code>POST /api/subscriptions/cancel</code>
+                        <code>GET /api/subscriptions/status</code>
+                    </div>
                 </div>
-                <div class="api-card">
+                <div class="docs-card">
+                    <div class="docs-icon">💰</div>
                     <h3>Financial</h3>
-                    <p>View earnings, transactions, and balance</p>
-                    <ul>
-                        <li><code>GET /api/business/financial/overview</code> - Financial overview</li>
-                        <li><code>GET /api/business/financial/transactions</code> - Transaction history</li>
-                        <li><code>GET /api/business/financial/balance</code> - Current balance</li>
-                    </ul>
-                    <a href="/docs/API.md#financial" class="link">View Docs →</a>
+                    <p>View earnings and transactions</p>
+                    <div class="docs-endpoints">
+                        <code>GET /api/business/financial/overview</code>
+                        <code>GET /api/business/financial/transactions</code>
+                        <code>GET /api/business/financial/balance</code>
+                    </div>
                 </div>
-                <div class="api-card">
+                <div class="docs-card">
+                    <div class="docs-icon">🔗</div>
                     <h3>Stripe Connect</h3>
                     <p>Onboard creators and process payouts</p>
-                    <ul>
-                        <li><code>POST /api/business/stripe/connect/onboard</code> - Onboard to Connect</li>
-                        <li><code>GET /api/business/stripe/connect/status</code> - Get status</li>
-                        <li><code>POST /api/business/payouts/request</code> - Request payout</li>
-                    </ul>
-                    <a href="/docs/API.md#stripe-connect" class="link">View Docs →</a>
+                    <div class="docs-endpoints">
+                        <code>POST /api/business/stripe/connect/onboard</code>
+                        <code>GET /api/business/stripe/connect/status</code>
+                        <code>POST /api/business/payouts/request</code>
+                    </div>
                 </div>
+            </div>
+            <div class="docs-cta">
+                <a href="/docs/API.md" class="btn btn-primary">View Full Documentation</a>
             </div>
         </div>
     </section>
 
-    <!-- Getting Started Section -->
-    <section id="getting-started" class="getting-started">
+    <!-- Status Section -->
+    <section class="status-section">
         <div class="container">
-            <h2 class="section-title">Getting Started</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Register Your Business</h3>
-                    <p>Create an account and set up your business profile</p>
-                    <code>POST /api/auth/register</code>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Upload Media</h3>
-                    <p>Upload your images, videos, or audio files</p>
-                    <code>POST /api/media/upload</code>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Make It Licensable</h3>
-                    <p>Set pricing and license types for your media</p>
-                    <code>POST /api/media/:id/licensing</code>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Start Earning</h3>
-                    <p>Receive license requests and payments automatically</p>
-                    <code>GET /api/business/financial/overview</code>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- API Status Section -->
-    <section class="status">
-        <div class="container">
-            <h2 class="section-title">API Status</h2>
             <div class="status-card">
-                <div class="status-indicator" id="status-indicator">
-                    <span class="status-dot"></span>
-                    <span id="status-text">Checking...</span>
+                <div class="status-header">
+                    <h3>API Status</h3>
+                    <div class="status-indicator" id="status-indicator">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="status-text">Checking...</span>
+                    </div>
                 </div>
-                <p id="status-message">Checking API status...</p>
+                <p id="status-message" class="status-message">Checking API status...</p>
+                <div class="status-details">
+                    <div class="status-item">
+                        <span class="status-label">Uptime:</span>
+                        <span class="status-value" id="uptime">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Response Time:</span>
+                        <span class="status-value" id="response-time">--</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -253,29 +307,37 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-section">
-                    <h4>Business Media API</h4>
-                    <p>Media licensing platform for businesses</p>
+                <div class="footer-column">
+                    <h4>MediaAPI</h4>
+                    <p>Media licensing platform for businesses. Upload, license, and monetize your content.</p>
                 </div>
-                <div class="footer-section">
+                <div class="footer-column">
                     <h4>Resources</h4>
                     <ul>
                         <li><a href="/docs/API.md">API Documentation</a></li>
-                        <li><a href="/docs/REVENUE_CALCULATION.md">Revenue Calculation</a></li>
-                        <li><a href="/README.md">README</a></li>
+                        <li><a href="/docs/REVENUE_CALCULATION.md">Revenue Guide</a></li>
+                        <li><a href="/README.md">Getting Started</a></li>
                     </ul>
                 </div>
-                <div class="footer-section">
+                <div class="footer-column">
                     <h4>Support</h4>
                     <ul>
-                        <li><a href="/QUICK_START.md">Quick Start Guide</a></li>
+                        <li><a href="/QUICK_START.md">Quick Start</a></li>
                         <li><a href="/TESTING.md">Testing Guide</a></li>
                         <li><a href="/MIGRATION_GUIDE.md">Migration Guide</a></li>
                     </ul>
                 </div>
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#terms">Terms of Service</a></li>
+                        <li><a href="#privacy">Privacy Policy</a></li>
+                        <li><a href="#security">Security</a></li>
+                    </ul>
+                </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Business Media API. All rights reserved.</p>
+                <p>&copy; 2024 MediaAPI. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -283,4 +345,3 @@
     <script src="/js/main.js"></script>
 </body>
 </html>
-
