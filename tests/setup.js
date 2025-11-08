@@ -42,6 +42,38 @@ jest.mock('../src/config/cloudinary', () => {
   };
 });
 
+// Mock Stripe module globally
+// This allows tests to use Stripe mocks without requiring real Stripe API calls
+// Jest will automatically use __mocks__/stripe.js when 'stripe' is required
+jest.mock('stripe');
+
+// Helper function to reset Stripe mocks between tests
+function resetStripeMocks() {
+  const Stripe = jest.requireMock('stripe');
+  
+  // Create a new instance to get all methods
+  const mockStripeInstance = new Stripe('sk_test_mock');
+  
+  // Reset all nested mock functions
+  Object.keys(mockStripeInstance).forEach(key => {
+    if (mockStripeInstance[key] && typeof mockStripeInstance[key] === 'object') {
+      Object.keys(mockStripeInstance[key]).forEach(method => {
+        if (mockStripeInstance[key][method] && typeof mockStripeInstance[key][method].mockClear === 'function') {
+          mockStripeInstance[key][method].mockClear();
+        }
+      });
+    }
+  });
+}
+
+// Reset Stripe mocks before each test
+beforeEach(() => {
+  resetStripeMocks();
+});
+
+// Export reset function for use in tests
+global.resetStripeMocks = resetStripeMocks;
+
 let mongoServer;
 
 // Setup before all tests
