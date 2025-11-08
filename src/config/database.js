@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
-const uri = process.env.MONGODB_URI || "mongodb+srv://monica_db_user:LBfhCKmmUIuC1IoY@bmapi.gfhelui.mongodb.net/?appName=BMAPI";
+// Get MongoDB URI from environment variables
+// CRITICAL: Never hardcode credentials in source code
+const uri = process.env.MONGODB_URI;
+
+if (!uri) {
+  throw new Error('MONGODB_URI is required in environment variables. Please set it in your .env file.');
+}
 
 let isConnected = false;
 
