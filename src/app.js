@@ -51,6 +51,11 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (landing page, CSS, JS)
 app.use(express.static('public'));
 
+// Landing page route (must be before API routes)
+app.get('/', (req, res) => {
+  res.sendFile('index.html', { root: 'public' });
+});
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
